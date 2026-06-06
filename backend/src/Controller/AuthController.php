@@ -8,6 +8,7 @@ use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
 use Symfony\Component\HttpFoundation\JsonResponse;
 use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\HttpKernel\Exception\BadRequestHttpException;
+use Symfony\Component\HttpKernel\Exception\HttpExceptionInterface;
 use Symfony\Component\Routing\Attribute\Route;
 
 class AuthController extends AbstractController
@@ -21,7 +22,14 @@ class AuthController extends AbstractController
             throw new BadRequestHttpException('Le body JSON est invalide.');
         }
 
-        $authService->register($data['email'] ?? null, $data['password'] ?? null);
+        try {
+            $authService->register($data['email'] ?? null, $data['password'] ?? null);
+        } catch (HttpExceptionInterface $exception) {
+            return $this->json(
+                ['message' => $exception->getMessage()],
+                $exception->getStatusCode(),
+            );
+        }
 
         return $this->json(['message' => 'Utilisateur créé avec succès'], JsonResponse::HTTP_CREATED);
     }
