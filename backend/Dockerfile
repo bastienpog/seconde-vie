@@ -13,6 +13,7 @@ RUN apk add --no-cache \
 
 RUN docker-php-ext-install \
     intl \
+    mbstring \
     pdo \
     pdo_mysql \
     zip \
