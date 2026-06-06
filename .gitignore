@@ -1,0 +1,31 @@
+# Dependencies
+node_modules/
+vendor/
+
+# Env
+.env
+.env.local
+.env.*.local
+!.env.example
+
+# Build
+dist/
+build/
+var/cache/
+var/log/
+
+# IDE
+.vscode/
+.idea/
+
+# OS
+.DS_Store
+Thumbs.db
+
+# Coverage
+coverage/
+.phpunit.cache/
+
+/docs
+.env.example
+AGENTS.md
