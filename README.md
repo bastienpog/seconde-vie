@@ -133,7 +133,8 @@ Content-Type: application/json
 ```json
 {
   "email": "user@example.com",
-  "password": "password123"
+  "password": "password123",
+  "name": "Bastien"
 }
 ```
 
@@ -196,7 +197,8 @@ Body JSON :
 ```json
 {
   "email": "user@example.com",
-  "password": "password123"
+  "password": "password123",
+  "name": "Bastien"
 }
 ```
 

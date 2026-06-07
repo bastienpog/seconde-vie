@@ -18,10 +18,11 @@ class AuthService
     ) {
     }
 
-    public function register(?string $email, ?string $plainPassword): User
+    public function register(?string $email, ?string $plainPassword, ?string $name): User
     {
         $email = strtolower(trim((string) $email));
         $plainPassword = (string) $plainPassword;
+        $name = trim((string) $name);
 
         if ($email === '') {
             throw new BadRequestHttpException('L\'email est obligatoire.');
@@ -35,12 +36,17 @@ class AuthService
             throw new BadRequestHttpException('Le mot de passe est obligatoire.');
         }
 
+        if ($name === '') {
+            throw new BadRequestHttpException('Le nom est obligatoire.');
+        }
+
         if ($this->userRepository->findOneBy(['email' => $email]) !== null) {
             throw new ConflictHttpException('Cet email est déjà utilisé.');
         }
 
         $user = new User();
         $user->setEmail($email);
+        $user->setName($name);
         $user->setRoles(['ROLE_USER']);
         $user->setPassword($this->passwordHasher->hashPassword($user, $plainPassword));
 

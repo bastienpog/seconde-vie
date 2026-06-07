@@ -23,7 +23,7 @@ class AuthController extends AbstractController
         }
 
         try {
-            $authService->register($data['email'] ?? null, $data['password'] ?? null);
+            $authService->register($data['email'] ?? null, $data['password'] ?? null, $data['name'] ?? null);
         } catch (HttpExceptionInterface $exception) {
             return $this->json(
                 ['message' => $exception->getMessage()],
@@ -46,6 +46,7 @@ class AuthController extends AbstractController
         return $this->json([
             'id' => $user->getId(),
             'email' => $user->getEmail(),
+            'name' => $user->getName(),
             'roles' => $user->getRoles(),
         ]);
     }
