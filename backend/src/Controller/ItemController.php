@@ -4,9 +4,11 @@ namespace App\Controller;
 
 use App\Entity\User;
 use App\Service\ItemService;
+use App\Service\ItemValidationException;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
 use Symfony\Component\HttpFoundation\JsonResponse;
 use Symfony\Component\HttpFoundation\Request;
+use Symfony\Component\HttpKernel\Exception\HttpExceptionInterface;
 use Symfony\Component\Routing\Attribute\Route;
 
 class ItemController extends AbstractController
@@ -31,7 +33,18 @@ class ItemController extends AbstractController
             ], JsonResponse::HTTP_BAD_REQUEST);
         }
 
-        $item = $itemService->create($data, $user);
+        try {
+            $item = $itemService->create($data, $user);
+        } catch (ItemValidationException $exception) {
+            return $this->json([
+                'error' => $exception->getMessage(),
+                'details' => $exception->getDetails(),
+            ], JsonResponse::HTTP_BAD_REQUEST);
+        } catch (HttpExceptionInterface $exception) {
+            return $this->json([
+                'error' => $exception->getMessage(),
+            ], $exception->getStatusCode());
+        }
 
         return $this->json($itemService->formatItem($item), JsonResponse::HTTP_CREATED);
     }
