@@ -55,9 +55,6 @@ class ItemService
     /** @return array<string, mixed> */
     public function formatItem(Item $item): array
     {
-        $category = $item->getCategory();
-        $owner = $item->getOwner();
-
         return [
             'id' => $item->getId(),
             'title' => $item->getTitle(),
@@ -65,15 +62,36 @@ class ItemService
             'city' => $item->getCity(),
             'imageUrl' => $item->getImageUrl(),
             'status' => $item->getStatus(),
-            'category' => $category === null ? null : [
-                'id' => $category->getId(),
-                'name' => $category->getName(),
-            ],
-            'owner' => $owner === null ? null : [
-                'id' => $owner->getId(),
-                'email' => $owner->getEmail(),
-            ],
+            'category' => $this->formatCategory($item->getCategory()),
+            'owner' => $this->formatOwner($item->getOwner()),
             'createdAt' => $item->getCreatedAt()->format(\DateTimeInterface::ATOM),
+            'updatedAt' => $item->getUpdatedAt()->format(\DateTimeInterface::ATOM),
+        ];
+    }
+
+    /** @return array{id: int|null, name: string|null}|null */
+    private function formatCategory(?Category $category): ?array
+    {
+        if ($category === null) {
+            return null;
+        }
+
+        return [
+            'id' => $category->getId(),
+            'name' => $category->getName(),
+        ];
+    }
+
+    /** @return array{id: int|null, email: string|null}|null */
+    private function formatOwner(?User $owner): ?array
+    {
+        if ($owner === null) {
+            return null;
+        }
+
+        return [
+            'id' => $owner->getId(),
+            'email' => $owner->getEmail(),
         ];
     }
 
