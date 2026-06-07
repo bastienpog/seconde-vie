@@ -219,11 +219,12 @@ Body JSON :
 ```json
 {
   "email": "user@example.com",
-  "password": "password123"
+  "password": "password123",
+  "name": "Bastien"
 }
 ```
 
-Résultat attendu : l'API indique que l'email est déjà utilisé.
+Résultat attendu : l'API indique que l'email est déjà utilisé. Le champ `name` reste obligatoire dans le body, comme pour une inscription réussie.
 
 Code HTTP attendu : `409 Conflict`.
 
@@ -278,7 +279,7 @@ GET /api/me
 Authorization: Bearer <token>
 ```
 
-Résultat attendu : l'API retourne l'id, l'email et les rôles de l'utilisateur connecté, sans le mot de passe hashé.
+Résultat attendu : l'API retourne l'id, l'email, le nom et les rôles de l'utilisateur connecté, sans le mot de passe hashé.
 
 Code HTTP attendu : `200 OK`.
 
