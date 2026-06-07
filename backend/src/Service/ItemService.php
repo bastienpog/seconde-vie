@@ -2,6 +2,7 @@
 
 namespace App\Service;
 
+use App\Entity\Category;
 use App\Entity\Item;
 use App\Entity\User;
 use App\Repository\CategoryRepository;
@@ -26,16 +27,27 @@ class ItemService
             throw new NotFoundHttpException('La catégorie demandée est introuvable.');
         }
 
-        $item = new Item();
-        $item->setTitle($normalizedData['title']);
-        $item->setDescription($normalizedData['description']);
-        $item->setCity($normalizedData['city']);
-        $item->setImageUrl($normalizedData['imageUrl']);
-        $item->setOwner($owner);
-        $item->setCategory($category);
+        $item = $this->buildItem($normalizedData, $owner, $category);
 
         $this->entityManager->persist($item);
         $this->entityManager->flush();
+
+        return $item;
+    }
+
+
+    /**
+     * @param array{title: string, description: string, city: string, imageUrl: ?string, categoryId: int} $data
+     */
+    private function buildItem(array $data, User $owner, Category $category): Item
+    {
+        $item = new Item();
+        $item->setTitle($data['title']);
+        $item->setDescription($data['description']);
+        $item->setCity($data['city']);
+        $item->setImageUrl($data['imageUrl']);
+        $item->setOwner($owner);
+        $item->setCategory($category);
 
         return $item;
     }
