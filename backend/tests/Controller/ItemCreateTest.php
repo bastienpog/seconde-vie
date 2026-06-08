@@ -36,6 +36,7 @@ class ItemCreateTest extends WebTestCase
         self::assertIsInt($data['id']);
         self::assertSame('Perceuse Bosch', $data['title']);
         self::assertSame('Paris', $data['city']);
+        self::assertSame('Bon état', $data['condition']);
         self::assertSame('https://example.com/image.jpg', $data['imageUrl']);
         self::assertSame('available', $data['status']);
         self::assertSame($category->getId(), $data['category']['id']);
@@ -68,6 +69,7 @@ class ItemCreateTest extends WebTestCase
         $payload = $this->validPayload($category->getId());
         $payload['title'] = '';
         $payload['description'] = '';
+        $payload['condition'] = '';
 
         $client->request(
             'POST',
@@ -86,6 +88,7 @@ class ItemCreateTest extends WebTestCase
         self::assertSame('Invalid data', $data['error']);
         self::assertSame('Le titre est obligatoire.', $data['details']['title']);
         self::assertSame('La description est obligatoire.', $data['details']['description']);
+        self::assertSame('L\'état est obligatoire.', $data['details']['condition']);
     }
 
     public function testCreateItemWithUnknownCategoryReturnsNotFound(): void
@@ -136,6 +139,48 @@ class ItemCreateTest extends WebTestCase
         self::assertInstanceOf(Item::class, $item);
         self::assertSame($email, $item->getOwner()?->getEmail());
         self::assertSame($category->getId(), $item->getCategory()?->getId());
+    }
+
+    public function testCreatedItemAppearsInPublicList(): void
+    {
+        $client = static::createClient();
+        $email = $this->registerUser($client);
+        $token = $this->login($client, $email);
+        $category = $this->createCategory('Cuisine');
+
+        $client->request(
+            'POST',
+            '/api/items',
+            server: [
+                'CONTENT_TYPE' => 'application/json',
+                'HTTP_AUTHORIZATION' => 'Bearer '.$token,
+            ],
+            content: json_encode($this->validPayload($category->getId()), JSON_THROW_ON_ERROR),
+        );
+
+        self::assertResponseStatusCodeSame(Response::HTTP_CREATED);
+
+        $createdItem = json_decode($client->getResponse()->getContent(), true, 512, JSON_THROW_ON_ERROR);
+
+        $client->request('GET', '/api/items');
+
+        self::assertResponseStatusCodeSame(Response::HTTP_OK);
+
+        $items = json_decode($client->getResponse()->getContent(), true, 512, JSON_THROW_ON_ERROR);
+        $matchingItems = array_values(array_filter(
+            $items,
+            fn (array $item): bool => $item['id'] === $createdItem['id'],
+        ));
+
+        self::assertCount(1, $matchingItems);
+
+        $item = $matchingItems[0];
+
+        self::assertSame('Perceuse Bosch', $item['title']);
+        self::assertSame('Paris', $item['city']);
+        self::assertSame('Bon état', $item['condition']);
+        self::assertSame($category->getId(), $item['category']['id']);
+        self::assertSame($email, $item['owner']['email']);
     }
 
     private function registerUser(KernelBrowser $client): string
@@ -199,6 +244,7 @@ class ItemCreateTest extends WebTestCase
             'title' => 'Perceuse Bosch',
             'description' => 'Perceuse en bon état disponible pour un prêt local.',
             'city' => 'Paris',
+            'condition' => 'Bon état',
             'categoryId' => $categoryId,
             'imageUrl' => 'https://example.com/image.jpg',
         ];

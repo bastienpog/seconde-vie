@@ -31,6 +31,10 @@ class Item
     #[Assert\NotBlank(message: 'La ville est obligatoire.')]
     private ?string $city = null;
 
+    #[ORM\Column(name: '`condition`', length: 100)]
+    #[Assert\NotBlank(message: 'L\'état est obligatoire.')]
+    private ?string $condition = null;
+
     #[ORM\Column(length: 255, nullable: true)]
     #[Assert\Url(message: "L'URL de l'image n'est pas valide.")]
     private ?string $imageUrl = null;
@@ -98,6 +102,19 @@ class Item
     public function setCity(string $city): static
     {
         $this->city = $city;
+        $this->touch();
+
+        return $this;
+    }
+
+    public function getCondition(): ?string
+    {
+        return $this->condition;
+    }
+
+    public function setCondition(string $condition): static
+    {
+        $this->condition = $condition;
         $this->touch();
 
         return $this;

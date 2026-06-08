@@ -13,6 +13,12 @@ use Symfony\Component\Routing\Attribute\Route;
 
 class ItemController extends AbstractController
 {
+    #[Route('/api/items', name: 'api_items_list', methods: ['GET'])]
+    public function list(ItemService $itemService): JsonResponse
+    {
+        return $this->json($itemService->list());
+    }
+
     #[Route('/api/items', name: 'api_items_create', methods: ['POST'])]
     public function create(Request $request, ItemService $itemService): JsonResponse
     {
