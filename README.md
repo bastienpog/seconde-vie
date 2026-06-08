@@ -294,3 +294,68 @@ GET /api/me
 Résultat attendu : l'API refuse l'accès.
 
 Code HTTP attendu : `401 Unauthorized`.
+
+
+## Tests manuels objets
+
+### Création d'un objet
+
+Route :
+
+```http
+POST /api/items
+Authorization: Bearer <token>
+```
+
+Body JSON :
+
+```json
+{
+  "title": "Perceuse Bosch",
+  "description": "Perceuse en bon état disponible pour un prêt local.",
+  "city": "Paris",
+  "condition": "Bon état",
+  "categoryId": 1,
+  "imageUrl": "https://example.com/image.jpg"
+}
+```
+
+Résultat attendu : l'objet est créé avec le propriétaire connecté.
+
+Code HTTP attendu : `201 Created`.
+
+### Liste des objets
+
+Route :
+
+```http
+GET /api/items
+```
+
+Résultat attendu : l'objet créé apparaît dans la liste publique avec son titre, sa ville, son état, sa catégorie, son propriétaire et sa photo principale. Les objets non disponibles ne sont pas affichés.
+
+Code HTTP attendu : `200 OK`.
+
+### Détail d'un objet
+
+Route :
+
+```http
+GET /api/items/{id}
+```
+
+Résultat attendu : l'API retourne le titre, la description, la catégorie, la ville, l'état, la photo principale et le propriétaire de l'objet disponible.
+
+Code HTTP attendu : `200 OK`.
+
+### Détail d'un objet introuvable
+
+Route :
+
+```http
+GET /api/items/999999
+```
+
+Résultat attendu : l'API retourne une erreur claire.
+
+Code HTTP attendu : `404 Not Found`.
