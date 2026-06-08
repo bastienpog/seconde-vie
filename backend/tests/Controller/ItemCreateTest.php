@@ -141,6 +141,15 @@ class ItemCreateTest extends WebTestCase
         self::assertSame($category->getId(), $item->getCategory()?->getId());
     }
 
+    public function testListItemsIsPublic(): void
+    {
+        $client = static::createClient();
+
+        $client->request('GET', '/api/items');
+
+        self::assertResponseStatusCodeSame(Response::HTTP_OK);
+    }
+
     public function testCreatedItemAppearsInPublicList(): void
     {
         $client = static::createClient();
@@ -181,6 +190,133 @@ class ItemCreateTest extends WebTestCase
         self::assertSame('Bon état', $item['condition']);
         self::assertSame($category->getId(), $item['category']['id']);
         self::assertSame($email, $item['owner']['email']);
+    }
+
+    public function testUnavailableItemDoesNotAppearInPublicList(): void
+    {
+        $client = static::createClient();
+        $email = $this->registerUser($client);
+        $token = $this->login($client, $email);
+        $category = $this->createCategory('Sport');
+
+        $client->request(
+            'POST',
+            '/api/items',
+            server: [
+                'CONTENT_TYPE' => 'application/json',
+                'HTTP_AUTHORIZATION' => 'Bearer '.$token,
+            ],
+            content: json_encode($this->validPayload($category->getId()), JSON_THROW_ON_ERROR),
+        );
+
+        self::assertResponseStatusCodeSame(Response::HTTP_CREATED);
+
+        $createdItem = json_decode($client->getResponse()->getContent(), true, 512, JSON_THROW_ON_ERROR);
+        $itemRepository = self::getContainer()->get(ItemRepository::class);
+        $item = $itemRepository->find($createdItem['id']);
+
+        self::assertInstanceOf(Item::class, $item);
+
+        $item->setStatus('unavailable');
+        self::getContainer()->get(EntityManagerInterface::class)->flush();
+
+        $client->request('GET', '/api/items');
+
+        self::assertResponseStatusCodeSame(Response::HTTP_OK);
+
+        $items = json_decode($client->getResponse()->getContent(), true, 512, JSON_THROW_ON_ERROR);
+        $matchingItems = array_values(array_filter(
+            $items,
+            fn (array $listedItem): bool => $listedItem['id'] === $createdItem['id'],
+        ));
+
+        self::assertCount(0, $matchingItems);
+    }
+
+    public function testItemDetailReturnsAvailableItem(): void
+    {
+        $client = static::createClient();
+        $email = $this->registerUser($client);
+        $token = $this->login($client, $email);
+        $category = $this->createCategory('Transport');
+
+        $client->request(
+            'POST',
+            '/api/items',
+            server: [
+                'CONTENT_TYPE' => 'application/json',
+                'HTTP_AUTHORIZATION' => 'Bearer '.$token,
+            ],
+            content: json_encode($this->validPayload($category->getId()), JSON_THROW_ON_ERROR),
+        );
+
+        self::assertResponseStatusCodeSame(Response::HTTP_CREATED);
+
+        $createdItem = json_decode($client->getResponse()->getContent(), true, 512, JSON_THROW_ON_ERROR);
+
+        $client->request('GET', sprintf('/api/items/%d', $createdItem['id']));
+
+        self::assertResponseStatusCodeSame(Response::HTTP_OK);
+
+        $item = json_decode($client->getResponse()->getContent(), true, 512, JSON_THROW_ON_ERROR);
+
+        self::assertSame($createdItem['id'], $item['id']);
+        self::assertSame('Perceuse Bosch', $item['title']);
+        self::assertSame('Perceuse en bon état disponible pour un prêt local.', $item['description']);
+        self::assertSame('Paris', $item['city']);
+        self::assertSame('Bon état', $item['condition']);
+        self::assertSame('https://example.com/image.jpg', $item['imageUrl']);
+        self::assertSame($category->getId(), $item['category']['id']);
+        self::assertSame($email, $item['owner']['email']);
+    }
+
+    public function testItemDetailWithUnknownIdReturnsNotFound(): void
+    {
+        $client = static::createClient();
+
+        $client->request('GET', '/api/items/999999');
+
+        self::assertResponseStatusCodeSame(Response::HTTP_NOT_FOUND);
+
+        $data = json_decode($client->getResponse()->getContent(), true, 512, JSON_THROW_ON_ERROR);
+
+        self::assertSame("L'objet demandé est introuvable.", $data['error']);
+    }
+
+    public function testItemDetailWithUnavailableItemReturnsNotFound(): void
+    {
+        $client = static::createClient();
+        $email = $this->registerUser($client);
+        $token = $this->login($client, $email);
+        $category = $this->createCategory('Loisirs');
+
+        $client->request(
+            'POST',
+            '/api/items',
+            server: [
+                'CONTENT_TYPE' => 'application/json',
+                'HTTP_AUTHORIZATION' => 'Bearer '.$token,
+            ],
+            content: json_encode($this->validPayload($category->getId()), JSON_THROW_ON_ERROR),
+        );
+
+        self::assertResponseStatusCodeSame(Response::HTTP_CREATED);
+
+        $createdItem = json_decode($client->getResponse()->getContent(), true, 512, JSON_THROW_ON_ERROR);
+        $item = self::getContainer()->get(ItemRepository::class)->find($createdItem['id']);
+
+        self::assertInstanceOf(Item::class, $item);
+
+        $item->setStatus('unavailable');
+        self::getContainer()->get(EntityManagerInterface::class)->flush();
+
+        $client->request('GET', sprintf('/api/items/%d', $createdItem['id']));
+
+        self::assertResponseStatusCodeSame(Response::HTTP_NOT_FOUND);
+
+        $data = json_decode($client->getResponse()->getContent(), true, 512, JSON_THROW_ON_ERROR);
+
+        self::assertSame("L'objet demandé est introuvable.", $data['error']);
     }
 
     private function registerUser(KernelBrowser $client): string

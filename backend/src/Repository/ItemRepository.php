@@ -15,4 +15,18 @@ class ItemRepository extends ServiceEntityRepository
     {
         parent::__construct($registry, Item::class);
     }
+
+    /** @return list<Item> */
+    public function findAvailable(): array
+    {
+        return $this->findBy(['status' => Item::STATUS_AVAILABLE], ['createdAt' => 'DESC']);
+    }
+
+    public function findAvailableById(int $id): ?Item
+    {
+        return $this->findOneBy([
+            'id' => $id,
+            'status' => Item::STATUS_AVAILABLE,
+        ]);
+    }
 }

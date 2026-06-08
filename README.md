@@ -332,6 +332,30 @@ Route :
 GET /api/items
 ```
 
-Résultat attendu : l'objet créé apparaît dans la liste publique avec son titre, sa ville, son état, sa catégorie, son propriétaire et sa photo principale.
+Résultat attendu : l'objet créé apparaît dans la liste publique avec son titre, sa ville, son état, sa catégorie, son propriétaire et sa photo principale. Les objets non disponibles ne sont pas affichés.
 
 Code HTTP attendu : `200 OK`.
+
+### Détail d'un objet
+
+Route :
+
+```http
+GET /api/items/{id}
+```
+
+Résultat attendu : l'API retourne le titre, la description, la catégorie, la ville, l'état, la photo principale et le propriétaire de l'objet disponible.
+
+Code HTTP attendu : `200 OK`.
+
+### Détail d'un objet introuvable
+
+Route :
+
+```http
+GET /api/items/999999
+```
+
+Résultat attendu : l'API retourne une erreur claire.
+
+Code HTTP attendu : `404 Not Found`.

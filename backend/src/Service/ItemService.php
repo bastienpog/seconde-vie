@@ -24,8 +24,20 @@ class ItemService
     {
         return array_map(
             fn (Item $item): array => $this->formatItem($item),
-            $this->itemRepository->findBy([], ['createdAt' => 'DESC']),
+            $this->itemRepository->findAvailable(),
         );
+    }
+
+    /** @return array<string, mixed> */
+    public function getAvailableItem(int $id): array
+    {
+        $item = $this->itemRepository->findAvailableById($id);
+
+        if ($item === null) {
+            throw new NotFoundHttpException("L'objet demandé est introuvable.");
+        }
+
+        return $this->formatItem($item);
     }
 
     /** @param array<string, mixed> $data */

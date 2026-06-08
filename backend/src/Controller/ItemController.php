@@ -19,6 +19,18 @@ class ItemController extends AbstractController
         return $this->json($itemService->list());
     }
 
+    #[Route('/api/items/{id}', name: 'api_items_detail', requirements: ['id' => '\d+'], methods: ['GET'])]
+    public function detail(int $id, ItemService $itemService): JsonResponse
+    {
+        try {
+            return $this->json($itemService->getAvailableItem($id));
+        } catch (HttpExceptionInterface $exception) {
+            return $this->json([
+                'error' => $exception->getMessage(),
+            ], $exception->getStatusCode());
+        }
+    }
+
     #[Route('/api/items', name: 'api_items_create', methods: ['POST'])]
     public function create(Request $request, ItemService $itemService): JsonResponse
     {
