@@ -20,11 +20,11 @@ class ItemService
     }
 
     /** @return list<array<string, mixed>> */
-    public function list(): array
+    public function list(?string $search = null, ?int $categoryId = null, ?string $city = null): array
     {
         return array_map(
             fn (Item $item): array => $this->formatItem($item),
-            $this->itemRepository->findAvailable(),
+            $this->itemRepository->findAvailable($search, $categoryId, $city),
         );
     }
 

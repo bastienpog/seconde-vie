@@ -17,9 +17,32 @@ class ItemRepository extends ServiceEntityRepository
     }
 
     /** @return list<Item> */
-    public function findAvailable(): array
+    public function findAvailable(?string $search = null, ?int $categoryId = null, ?string $city = null): array
     {
-        return $this->findBy(['status' => Item::STATUS_AVAILABLE], ['createdAt' => 'DESC']);
+        $queryBuilder = $this->createQueryBuilder('item')
+            ->andWhere('item.status = :status')
+            ->setParameter('status', Item::STATUS_AVAILABLE)
+            ->orderBy('item.createdAt', 'DESC');
+
+        if ($search !== null && $search !== '') {
+            $queryBuilder
+                ->andWhere('LOWER(item.title) LIKE :search OR LOWER(item.description) LIKE :search')
+                ->setParameter('search', '%'.mb_strtolower($search).'%');
+        }
+
+        if ($categoryId !== null) {
+            $queryBuilder
+                ->andWhere('IDENTITY(item.category) = :categoryId')
+                ->setParameter('categoryId', $categoryId);
+        }
+
+        if ($city !== null && $city !== '') {
+            $queryBuilder
+                ->andWhere('LOWER(item.city) LIKE :city')
+                ->setParameter('city', '%'.mb_strtolower($city).'%');
+        }
+
+        return $queryBuilder->getQuery()->getResult();
     }
 
     public function findAvailableById(int $id): ?Item

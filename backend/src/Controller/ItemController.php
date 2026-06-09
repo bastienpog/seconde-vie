@@ -14,9 +14,16 @@ use Symfony\Component\Routing\Attribute\Route;
 class ItemController extends AbstractController
 {
     #[Route('/api/items', name: 'api_items_list', methods: ['GET'])]
-    public function list(ItemService $itemService): JsonResponse
+    public function list(Request $request, ItemService $itemService): JsonResponse
     {
-        return $this->json($itemService->list());
+        $category = $request->query->get('category');
+        $categoryId = filter_var($category, FILTER_VALIDATE_INT, ['options' => ['min_range' => 1]]);
+
+        return $this->json($itemService->list(
+            $this->normalizeQueryParam($request->query->get('search')),
+            $categoryId === false ? null : $categoryId,
+            $this->normalizeQueryParam($request->query->get('city')),
+        ));
     }
 
     #[Route('/api/items/{id}', name: 'api_items_detail', requirements: ['id' => '\d+'], methods: ['GET'])]
@@ -65,5 +72,16 @@ class ItemController extends AbstractController
         }
 
         return $this->json($itemService->formatItem($item), JsonResponse::HTTP_CREATED);
+    }
+
+    private function normalizeQueryParam(mixed $value): ?string
+    {
+        if (!is_scalar($value)) {
+            return null;
+        }
+
+        $value = trim((string) $value);
+
+        return $value === '' ? null : $value;
     }
 }
