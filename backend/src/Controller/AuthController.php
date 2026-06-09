@@ -3,6 +3,7 @@
 namespace App\Controller;
 
 use App\Entity\User;
+use App\Service\AccountService;
 use App\Service\AuthService;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
 use Symfony\Component\HttpFoundation\JsonResponse;
@@ -49,5 +50,19 @@ class AuthController extends AbstractController
             'name' => $user->getName(),
             'roles' => $user->getRoles(),
         ]);
+    }
+
+    #[Route('/api/me', name: 'api_me_delete', methods: ['DELETE'])]
+    public function deleteMe(AccountService $accountService): JsonResponse
+    {
+        $user = $this->getUser();
+
+        if (!$user instanceof User) {
+            return $this->json(['message' => 'Authentification requise.'], JsonResponse::HTTP_UNAUTHORIZED);
+        }
+
+        $accountService->deleteAccount($user);
+
+        return $this->json(null, JsonResponse::HTTP_NO_CONTENT);
     }
 }

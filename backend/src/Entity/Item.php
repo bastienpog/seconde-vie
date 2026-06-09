@@ -51,7 +51,7 @@ class Item
     private \DateTimeImmutable $updatedAt;
 
     #[ORM\ManyToOne(inversedBy: 'items')]
-    #[ORM\JoinColumn(nullable: false)]
+    #[ORM\JoinColumn(nullable: false, onDelete: 'CASCADE')]
     private ?User $owner = null;
 
     #[ORM\ManyToOne(inversedBy: 'items')]
