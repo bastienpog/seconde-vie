@@ -26,6 +26,18 @@ class ItemController extends AbstractController
         ));
     }
 
+    #[Route('/api/me/items', name: 'api_me_items_list', methods: ['GET'])]
+    public function listMine(ItemService $itemService): JsonResponse
+    {
+        $user = $this->getUser();
+
+        if (!$user instanceof User) {
+            return $this->json(['message' => 'Authentification requise.'], JsonResponse::HTTP_UNAUTHORIZED);
+        }
+
+        return $this->json($itemService->listOwnedBy($user));
+    }
+
     #[Route('/api/items/{id}', name: 'api_items_detail', requirements: ['id' => '\d+'], methods: ['GET'])]
     public function detail(int $id, ItemService $itemService): JsonResponse
     {
@@ -47,7 +59,7 @@ class ItemController extends AbstractController
             return $this->json(['message' => 'Authentification requise.'], JsonResponse::HTTP_UNAUTHORIZED);
         }
 
-        $data = json_decode($request->getContent(), true);
+        $data = $this->decodeJsonBody($request);
 
         if (!is_array($data)) {
             return $this->json([
@@ -72,6 +84,70 @@ class ItemController extends AbstractController
         }
 
         return $this->json($itemService->formatItem($item), JsonResponse::HTTP_CREATED);
+    }
+
+    #[Route('/api/items/{id}', name: 'api_items_update', requirements: ['id' => '\d+'], methods: ['PUT'])]
+    public function update(int $id, Request $request, ItemService $itemService): JsonResponse
+    {
+        $user = $this->getUser();
+
+        if (!$user instanceof User) {
+            return $this->json(['message' => 'Authentification requise.'], JsonResponse::HTTP_UNAUTHORIZED);
+        }
+
+        $data = $this->decodeJsonBody($request);
+
+        if (!is_array($data)) {
+            return $this->json([
+                'error' => 'Invalid data',
+                'details' => [
+                    'body' => 'Le body JSON est invalide.',
+                ],
+            ], JsonResponse::HTTP_BAD_REQUEST);
+        }
+
+        try {
+            $item = $itemService->update($id, $data, $user);
+        } catch (ItemValidationException $exception) {
+            return $this->json([
+                'error' => $exception->getMessage(),
+                'details' => $exception->getDetails(),
+            ], JsonResponse::HTTP_BAD_REQUEST);
+        } catch (HttpExceptionInterface $exception) {
+            return $this->json([
+                'error' => $exception->getMessage(),
+            ], $exception->getStatusCode());
+        }
+
+        return $this->json($itemService->formatItem($item));
+    }
+
+    #[Route('/api/items/{id}', name: 'api_items_delete', requirements: ['id' => '\d+'], methods: ['DELETE'])]
+    public function delete(int $id, ItemService $itemService): JsonResponse
+    {
+        $user = $this->getUser();
+
+        if (!$user instanceof User) {
+            return $this->json(['message' => 'Authentification requise.'], JsonResponse::HTTP_UNAUTHORIZED);
+        }
+
+        try {
+            $itemService->delete($id, $user);
+        } catch (HttpExceptionInterface $exception) {
+            return $this->json([
+                'error' => $exception->getMessage(),
+            ], $exception->getStatusCode());
+        }
+
+        return $this->json(null, JsonResponse::HTTP_NO_CONTENT);
+    }
+
+    /** @return array<string, mixed>|null */
+    private function decodeJsonBody(Request $request): ?array
+    {
+        $data = json_decode($request->getContent(), true);
+
+        return is_array($data) ? $data : null;
     }
 
     private function normalizeQueryParam(mixed $value): ?string

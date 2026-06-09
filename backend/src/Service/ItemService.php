@@ -8,6 +8,7 @@ use App\Entity\User;
 use App\Repository\CategoryRepository;
 use App\Repository\ItemRepository;
 use Doctrine\ORM\EntityManagerInterface;
+use Symfony\Component\HttpKernel\Exception\AccessDeniedHttpException;
 use Symfony\Component\HttpKernel\Exception\NotFoundHttpException;
 
 class ItemService
@@ -25,6 +26,15 @@ class ItemService
         return array_map(
             fn (Item $item): array => $this->formatItem($item),
             $this->itemRepository->findAvailable($search, $categoryId, $city),
+        );
+    }
+
+    /** @return list<array<string, mixed>> */
+    public function listOwnedBy(User $owner): array
+    {
+        return array_map(
+            fn (Item $item): array => $this->formatItem($item),
+            $this->itemRepository->findByOwner($owner),
         );
     }
 
@@ -56,6 +66,43 @@ class ItemService
         $this->entityManager->flush();
 
         return $item;
+    }
+
+    /** @param array<string, mixed> $data */
+    public function update(int $id, array $data, User $user): Item
+    {
+        $item = $this->findItem($id);
+        $this->denyUnlessOwner($item, $user);
+
+        $normalizedData = $this->validate($data);
+        $category = $this->categoryRepository->find($normalizedData['categoryId']);
+
+        if ($category === null) {
+            throw new NotFoundHttpException('La catégorie demandée est introuvable.');
+        }
+
+        $item->setTitle($normalizedData['title']);
+        $item->setDescription($normalizedData['description']);
+        $item->setCity($normalizedData['city']);
+        $item->setCondition($normalizedData['condition']);
+        $item->setImageUrl($normalizedData['imageUrl']);
+        $item->setCategory($category);
+
+        $this->entityManager->flush();
+
+        return $item;
+    }
+
+    public function delete(int $id, User $user): void
+    {
+        $item = $this->findItem($id);
+
+        if (!$this->isOwner($item, $user) && !in_array('ROLE_ADMIN', $user->getRoles(), true)) {
+            throw new AccessDeniedHttpException('Vous ne pouvez pas supprimer cette annonce.');
+        }
+
+        $this->entityManager->remove($item);
+        $this->entityManager->flush();
     }
 
     /**
@@ -104,6 +151,29 @@ class ItemService
             'id' => $category->getId(),
             'name' => $category->getName(),
         ];
+    }
+
+    private function findItem(int $id): Item
+    {
+        $item = $this->itemRepository->find($id);
+
+        if ($item === null) {
+            throw new NotFoundHttpException("L'objet demandé est introuvable.");
+        }
+
+        return $item;
+    }
+
+    private function denyUnlessOwner(Item $item, User $user): void
+    {
+        if (!$this->isOwner($item, $user)) {
+            throw new AccessDeniedHttpException('Vous ne pouvez pas modifier cette annonce.');
+        }
+    }
+
+    private function isOwner(Item $item, User $user): bool
+    {
+        return $item->getOwner()?->getId() === $user->getId();
     }
 
     /** @return array{id: int|null, email: string|null}|null */

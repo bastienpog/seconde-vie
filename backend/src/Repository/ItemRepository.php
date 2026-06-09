@@ -3,6 +3,7 @@
 namespace App\Repository;
 
 use App\Entity\Item;
+use App\Entity\User;
 use Doctrine\Bundle\DoctrineBundle\Repository\ServiceEntityRepository;
 use Doctrine\Persistence\ManagerRegistry;
 
@@ -51,5 +52,11 @@ class ItemRepository extends ServiceEntityRepository
             'id' => $id,
             'status' => Item::STATUS_AVAILABLE,
         ]);
+    }
+
+    /** @return list<Item> */
+    public function findByOwner(User $owner): array
+    {
+        return $this->findBy(['owner' => $owner], ['createdAt' => 'DESC']);
     }
 }
