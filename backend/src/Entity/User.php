@@ -49,10 +49,17 @@ class User implements UserInterface, PasswordAuthenticatedUserInterface
     #[ORM\OneToMany(targetEntity: Item::class, mappedBy: 'owner', orphanRemoval: true)]
     private Collection $items;
 
+    /**
+     * @var Collection<int, LoanRequest>
+     */
+    #[ORM\OneToMany(targetEntity: LoanRequest::class, mappedBy: 'borrower', orphanRemoval: true)]
+    private Collection $sentLoanRequests;
+
     public function __construct()
     {
         $this->createdAt = new \DateTimeImmutable();
         $this->items = new ArrayCollection();
+        $this->sentLoanRequests = new ArrayCollection();
     }
 
     public function getId(): ?int
@@ -149,6 +156,33 @@ class User implements UserInterface, PasswordAuthenticatedUserInterface
     {
         if ($this->items->removeElement($item) && $item->getOwner() === $this) {
             $item->setOwner(null);
+        }
+
+        return $this;
+    }
+
+    /**
+     * @return Collection<int, LoanRequest>
+     */
+    public function getSentLoanRequests(): Collection
+    {
+        return $this->sentLoanRequests;
+    }
+
+    public function addSentLoanRequest(LoanRequest $loanRequest): static
+    {
+        if (!$this->sentLoanRequests->contains($loanRequest)) {
+            $this->sentLoanRequests->add($loanRequest);
+            $loanRequest->setBorrower($this);
+        }
+
+        return $this;
+    }
+
+    public function removeSentLoanRequest(LoanRequest $loanRequest): static
+    {
+        if ($this->sentLoanRequests->removeElement($loanRequest) && $loanRequest->getBorrower() === $this) {
+            $loanRequest->setBorrower(null);
         }
 
         return $this;

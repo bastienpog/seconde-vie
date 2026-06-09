@@ -3,6 +3,8 @@
 namespace App\Entity;
 
 use App\Repository\ItemRepository;
+use Doctrine\Common\Collections\ArrayCollection;
+use Doctrine\Common\Collections\Collection;
 use Doctrine\DBAL\Types\Types;
 use Doctrine\ORM\Mapping as ORM;
 use Symfony\Component\Validator\Constraints as Assert;
@@ -56,11 +58,18 @@ class Item
     #[ORM\JoinColumn(nullable: false)]
     private ?Category $category = null;
 
+    /**
+     * @var Collection<int, LoanRequest>
+     */
+    #[ORM\OneToMany(targetEntity: LoanRequest::class, mappedBy: 'item', orphanRemoval: true)]
+    private Collection $loanRequests;
+
     public function __construct()
     {
         $now = new \DateTimeImmutable();
         $this->createdAt = $now;
         $this->updatedAt = $now;
+        $this->loanRequests = new ArrayCollection();
     }
 
     public function getId(): ?int
@@ -178,6 +187,33 @@ class Item
     {
         $this->category = $category;
         $this->touch();
+
+        return $this;
+    }
+
+    /**
+     * @return Collection<int, LoanRequest>
+     */
+    public function getLoanRequests(): Collection
+    {
+        return $this->loanRequests;
+    }
+
+    public function addLoanRequest(LoanRequest $loanRequest): static
+    {
+        if (!$this->loanRequests->contains($loanRequest)) {
+            $this->loanRequests->add($loanRequest);
+            $loanRequest->setItem($this);
+        }
+
+        return $this;
+    }
+
+    public function removeLoanRequest(LoanRequest $loanRequest): static
+    {
+        if ($this->loanRequests->removeElement($loanRequest) && $loanRequest->getItem() === $this) {
+            $loanRequest->setItem(null);
+        }
 
         return $this;
     }
