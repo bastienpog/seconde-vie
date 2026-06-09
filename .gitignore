@@ -27,5 +27,4 @@ coverage/
 .phpunit.cache/
 
 /docs
-.env.example
 AGENTS.md
