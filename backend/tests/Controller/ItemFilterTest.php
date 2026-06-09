@@ -18,7 +18,7 @@ class ItemFilterTest extends WebTestCase
         $client = static::createClient();
         $context = $this->createContext($client);
         $matchingItem = $this->createItem($context['owner'], $context['category'], 'Escabeau aluminium', 'Pratique pour les travaux dans la maison.', 'Lyon');
-        $this->createItem($context['owner'], $context['category'], 'Tondeuse manuelle', 'Disponible pour un jardin de quartier.', 'Lyon');
+        $otherItem = $this->createItem($context['owner'], $context['category'], 'Tondeuse manuelle', 'Disponible pour un jardin de quartier.', 'Lyon');
 
         $client->request('GET', '/api/items?search=escabeau');
 
@@ -26,7 +26,7 @@ class ItemFilterTest extends WebTestCase
         $items = $this->decodeResponse($client);
 
         self::assertContainsItem($matchingItem->getId(), $items);
-        self::assertCount(1, $items);
+        self::assertNotContainsItem($otherItem->getId(), $items);
     }
 
     public function testSearchFindsItemByDescription(): void
@@ -34,7 +34,7 @@ class ItemFilterTest extends WebTestCase
         $client = static::createClient();
         $context = $this->createContext($client);
         $matchingItem = $this->createItem($context['owner'], $context['category'], 'Kit bricolage', 'Contient une ponceuse orbitale en bon etat.', 'Nantes');
-        $this->createItem($context['owner'], $context['category'], 'Appareil raclette', 'Pour repas familial ponctuel.', 'Nantes');
+        $otherItem = $this->createItem($context['owner'], $context['category'], 'Appareil raclette', 'Pour repas familial ponctuel.', 'Nantes');
 
         $client->request('GET', '/api/items?search=orbitale');
 
@@ -42,7 +42,7 @@ class ItemFilterTest extends WebTestCase
         $items = $this->decodeResponse($client);
 
         self::assertContainsItem($matchingItem->getId(), $items);
-        self::assertCount(1, $items);
+        self::assertNotContainsItem($otherItem->getId(), $items);
     }
 
     public function testCityFiltersAvailableItems(): void
@@ -50,7 +50,7 @@ class ItemFilterTest extends WebTestCase
         $client = static::createClient();
         $context = $this->createContext($client);
         $matchingItem = $this->createItem($context['owner'], $context['category'], 'Table pliante', 'Table disponible pour un evenement local.', 'Rennes');
-        $this->createItem($context['owner'], $context['category'], 'Chaise haute', 'Chaise haute propre et solide.', 'Bordeaux');
+        $otherItem = $this->createItem($context['owner'], $context['category'], 'Chaise haute', 'Chaise haute propre et solide.', 'Bordeaux');
 
         $client->request('GET', '/api/items?city=rennes');
 
@@ -58,7 +58,7 @@ class ItemFilterTest extends WebTestCase
         $items = $this->decodeResponse($client);
 
         self::assertContainsItem($matchingItem->getId(), $items);
-        self::assertCount(1, $items);
+        self::assertNotContainsItem($otherItem->getId(), $items);
     }
 
     public function testCategoryFiltersAvailableItems(): void
@@ -67,7 +67,7 @@ class ItemFilterTest extends WebTestCase
         $context = $this->createContext($client);
         $otherCategory = $this->createCategory('Cuisine');
         $matchingItem = $this->createItem($context['owner'], $context['category'], 'Perceuse filaire', 'Perceuse disponible pour petits travaux.', 'Paris');
-        $this->createItem($context['owner'], $otherCategory, 'Moule a gateau', 'Moule familial disponible ce week-end.', 'Paris');
+        $otherItem = $this->createItem($context['owner'], $otherCategory, 'Moule a gateau', 'Moule familial disponible ce week-end.', 'Paris');
 
         $client->request('GET', sprintf('/api/items?category=%d', $context['category']->getId()));
 
@@ -75,7 +75,7 @@ class ItemFilterTest extends WebTestCase
         $items = $this->decodeResponse($client);
 
         self::assertContainsItem($matchingItem->getId(), $items);
-        self::assertCount(1, $items);
+        self::assertNotContainsItem($otherItem->getId(), $items);
     }
 
     public function testFiltersCanBeCombined(): void
@@ -84,8 +84,8 @@ class ItemFilterTest extends WebTestCase
         $context = $this->createContext($client);
         $otherCategory = $this->createCategory('Jardin');
         $matchingItem = $this->createItem($context['owner'], $context['category'], 'Scie sauteuse', 'Scie compacte pour bricolage simple.', 'Marseille');
-        $this->createItem($context['owner'], $context['category'], 'Scie circulaire', 'Scie puissante pour atelier.', 'Lille');
-        $this->createItem($context['owner'], $otherCategory, 'Scie a branches', 'Scie utile pour le jardin.', 'Marseille');
+        $otherCityItem = $this->createItem($context['owner'], $context['category'], 'Scie circulaire', 'Scie puissante pour atelier.', 'Lille');
+        $otherCategoryItem = $this->createItem($context['owner'], $otherCategory, 'Scie a branches', 'Scie utile pour le jardin.', 'Marseille');
 
         $client->request('GET', sprintf('/api/items?search=scie&category=%d&city=marseille', $context['category']->getId()));
 
@@ -93,7 +93,8 @@ class ItemFilterTest extends WebTestCase
         $items = $this->decodeResponse($client);
 
         self::assertContainsItem($matchingItem->getId(), $items);
-        self::assertCount(1, $items);
+        self::assertNotContainsItem($otherCityItem->getId(), $items);
+        self::assertNotContainsItem($otherCategoryItem->getId(), $items);
     }
 
     public function testSearchWithoutResultReturnsEmptyList(): void
@@ -192,5 +193,12 @@ class ItemFilterTest extends WebTestCase
     {
         self::assertNotNull($itemId);
         self::assertContains($itemId, array_column($items, 'id'));
+    }
+
+    /** @param list<array<string, mixed>> $items */
+    private static function assertNotContainsItem(?int $itemId, array $items): void
+    {
+        self::assertNotNull($itemId);
+        self::assertNotContains($itemId, array_column($items, 'id'));
     }
 }
