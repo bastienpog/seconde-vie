@@ -1,24 +1,31 @@
 import type { ReactNode } from 'react'
 import { NavLink } from 'react-router'
 
-export function BottomNavigation() {
+type BottomNavigationProps = {
+  showCreateButton?: boolean
+}
+
+export function BottomNavigation({ showCreateButton = true }: BottomNavigationProps) {
   return (
-    <nav className="fixed inset-x-0 bottom-0 z-20 border-t border-slate-100 bg-white px-6 pb-5 pt-2 shadow-[0_-8px_24px_rgba(15,23,42,0.04)] sm:hidden">
-      <div className="mx-auto grid max-w-md grid-cols-4 items-end">
-        <BottomNavigationLink icon={<HomeIcon />} label="Accueil" to="/" />
-        <BottomNavigationLink icon={<BoxIcon />} label="Mes objets" to="/me/items" />
-        <div className="flex justify-center">
-          <NavLink
-            aria-label="Publier un objet"
-            className="mb-1 flex h-14 w-14 items-center justify-center rounded-full border-4 border-white bg-[#1a4231] text-white shadow-xl shadow-[#1a4231]/30"
-            to="/items/new"
-          >
-            <PlusIcon />
-          </NavLink>
+    <>
+      {showCreateButton && (
+        <NavLink
+        className="fixed bottom-[5.75rem] right-4 z-30 flex items-center gap-2 rounded-full bg-[#1a4231] px-5 py-3 text-sm font-bold text-white shadow-xl shadow-[#1a4231]/30 sm:hidden"
+        to="/items/new"
+        >
+          <PlusIcon />
+          Créer une annonce
+        </NavLink>
+      )}
+
+      <nav className="fixed inset-x-0 bottom-0 z-20 border-t border-slate-100 bg-white px-8 pb-5 pt-3 shadow-[0_-8px_24px_rgba(15,23,42,0.04)] sm:hidden">
+        <div className="mx-auto grid max-w-md grid-cols-3 items-end">
+          <BottomNavigationLink icon={<HomeIcon />} label="Accueil" to="/" />
+          <BottomNavigationLink icon={<BoxIcon />} label="Mes objets" to="/me/items" />
+          <BottomNavigationLink icon={<UserIcon />} label="Profil" to="/profile" />
         </div>
-        <BottomNavigationLink icon={<UserIcon />} label="Profil" to="/profile" />
-      </div>
-    </nav>
+      </nav>
+    </>
   )
 }
 
@@ -67,7 +74,7 @@ function BoxIcon() {
 
 function PlusIcon() {
   return (
-    <svg className="h-7 w-7" fill="none" stroke="currentColor" strokeLinecap="round" strokeLinejoin="round" strokeWidth="2.4" viewBox="0 0 24 24">
+    <svg className="h-5 w-5" fill="none" stroke="currentColor" strokeLinecap="round" strokeLinejoin="round" strokeWidth="2.4" viewBox="0 0 24 24">
       <path d="M12 5v14" />
       <path d="M5 12h14" />
     </svg>
