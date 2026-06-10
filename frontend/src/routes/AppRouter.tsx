@@ -21,10 +21,12 @@ export function AppRouter() {
 function AppShell() {
   const location = useLocation()
   const isAuthRoute = location.pathname === '/login' || location.pathname === '/register'
+  const isHomeRoute = location.pathname === '/'
+  const usesPageShell = isAuthRoute || isHomeRoute
 
   return (
-    <div className={isAuthRoute ? 'min-h-screen bg-[#f5f6f1]' : 'min-h-screen bg-slate-50 text-slate-950'}>
-      {!isAuthRoute && (
+    <div className={getShellClassName(isAuthRoute, isHomeRoute)}>
+      {!usesPageShell && (
         <header className="border-b border-slate-200 bg-white">
           <div className="mx-auto flex max-w-6xl items-center justify-between px-4 py-4">
             <Link className="text-lg font-semibold" to="/">
@@ -43,7 +45,7 @@ function AppShell() {
         </header>
       )}
 
-      <main className={isAuthRoute ? 'min-h-screen' : 'mx-auto max-w-6xl px-4 py-8'}>
+      <main className={usesPageShell ? 'min-h-screen' : 'mx-auto max-w-6xl px-4 py-8'}>
         <Routes>
           <Route element={<ItemListPage />} path="/" />
           <Route element={<ItemDetailPage />} path="/items/:id" />
@@ -58,6 +60,18 @@ function AppShell() {
       </main>
     </div>
   )
+}
+
+function getShellClassName(isAuthRoute: boolean, isHomeRoute: boolean): string {
+  if (isAuthRoute) {
+    return 'min-h-screen bg-[#f5f6f1]'
+  }
+
+  if (isHomeRoute) {
+    return 'min-h-screen bg-[#fdfcf8] text-slate-950'
+  }
+
+  return 'min-h-screen bg-slate-50 text-slate-950'
 }
 
 type NavigationLinkProps = {
