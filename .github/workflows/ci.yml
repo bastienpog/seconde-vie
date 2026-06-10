@@ -30,6 +30,7 @@ jobs:
     env:
       APP_ENV: test
       APP_SECRET: test_secret
+      DEFAULT_URI: http://localhost
       DATABASE_URL: mysql://seconde_vie:seconde_vie_password@127.0.0.1:3306/seconde_vie_test?serverVersion=8.0.32&charset=utf8mb4
       JWT_SECRET_KEY: "%kernel.project_dir%/config/jwt/private.pem"
       JWT_PUBLIC_KEY: "%kernel.project_dir%/config/jwt/public.pem"
@@ -43,16 +44,12 @@ jobs:
         uses: shivammathur/setup-php@v2
         with:
           php-version: "8.3"
-          extensions: ctype, iconv, intl, pdo_mysql
+          extensions: ctype, dom, iconv, intl, mbstring, pdo_mysql, xml, xmlwriter
           coverage: none
 
       - name: Prepare backend env file
         working-directory: backend
         run: cp .env.example .env
-
-      - name: Install backend dependencies
-        working-directory: backend
-        run: composer install --no-interaction --prefer-dist --no-progress
 
       - name: Generate JWT test keys
         working-directory: backend
@@ -60,6 +57,10 @@ jobs:
           mkdir -p config/jwt
           openssl genrsa -aes256 -passout pass:${JWT_PASSPHRASE} -out config/jwt/private.pem 4096
           openssl rsa -pubout -passin pass:${JWT_PASSPHRASE} -in config/jwt/private.pem -out config/jwt/public.pem
+
+      - name: Install backend dependencies
+        working-directory: backend
+        run: composer install --no-interaction --prefer-dist --no-progress
 
       - name: Create test database
         working-directory: backend
