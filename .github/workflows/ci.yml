@@ -1,0 +1,102 @@
+name: CI
+
+on:
+  pull_request:
+  push:
+    branches:
+      - develop
+
+jobs:
+  backend:
+    name: Backend
+    runs-on: ubuntu-latest
+
+    services:
+      mysql:
+        image: mysql:8.0
+        env:
+          MYSQL_DATABASE: seconde_vie_test
+          MYSQL_USER: seconde_vie
+          MYSQL_PASSWORD: seconde_vie_password
+          MYSQL_ROOT_PASSWORD: root_password
+        ports:
+          - 3306:3306
+        options: >-
+          --health-cmd="mysqladmin ping -h 127.0.0.1 -u seconde_vie -pseconde_vie_password"
+          --health-interval=10s
+          --health-timeout=5s
+          --health-retries=5
+
+    env:
+      APP_ENV: test
+      APP_SECRET: test_secret
+      DEFAULT_URI: http://localhost
+      DATABASE_URL: mysql://seconde_vie:seconde_vie_password@127.0.0.1:3306/seconde_vie?serverVersion=8.0.32&charset=utf8mb4
+      JWT_SECRET_KEY: "%kernel.project_dir%/config/jwt/private.pem"
+      JWT_PUBLIC_KEY: "%kernel.project_dir%/config/jwt/public.pem"
+      JWT_PASSPHRASE: test_passphrase
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Setup PHP
+        uses: shivammathur/setup-php@v2
+        with:
+          php-version: "8.3"
+          extensions: ctype, dom, iconv, intl, mbstring, pdo_mysql, xml, xmlwriter
+          coverage: none
+
+      - name: Prepare backend env file
+        working-directory: backend
+        run: cp .env.example .env
+
+      - name: Generate JWT test keys
+        working-directory: backend
+        run: |
+          mkdir -p config/jwt
+          openssl genrsa -aes256 -passout pass:${JWT_PASSPHRASE} -out config/jwt/private.pem 4096
+          openssl rsa -pubout -passin pass:${JWT_PASSPHRASE} -in config/jwt/private.pem -out config/jwt/public.pem
+
+      - name: Install backend dependencies
+        working-directory: backend
+        run: composer install --no-interaction --prefer-dist --no-progress
+
+      - name: Create test database
+        working-directory: backend
+        run: php bin/console doctrine:database:create --env=test --if-not-exists
+
+      - name: Run backend migrations
+        working-directory: backend
+        run: php bin/console doctrine:migrations:migrate --env=test --no-interaction
+
+      - name: Run backend tests
+        working-directory: backend
+        run: php bin/phpunit
+
+  frontend:
+    name: Frontend
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Setup Node
+        uses: actions/setup-node@v4
+        with:
+          node-version: "22"
+          cache: npm
+          cache-dependency-path: frontend/package-lock.json
+
+      - name: Install frontend dependencies
+        working-directory: frontend
+        run: npm ci
+
+      - name: Lint frontend
+        working-directory: frontend
+        run: npm run lint
+
+      - name: Build frontend
+        working-directory: frontend
+        run: npm run build
