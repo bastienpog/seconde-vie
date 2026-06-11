@@ -25,13 +25,19 @@ class LoanRequestTest extends WebTestCase
         $client->request(
             'POST',
             sprintf('/api/items/%d/loan-requests', $item->getId()),
-            server: ['HTTP_AUTHORIZATION' => 'Bearer '.$borrower['token']],
+            server: [
+                'CONTENT_TYPE' => 'application/json',
+                'HTTP_AUTHORIZATION' => 'Bearer '.$borrower['token'],
+            ],
+            content: json_encode($this->payload(), JSON_THROW_ON_ERROR),
         );
 
         self::assertResponseStatusCodeSame(Response::HTTP_CREATED);
         $data = $this->decodeResponse($client);
 
         self::assertSame(LoanRequest::STATUS_PENDING, $data['status']);
+        self::assertSame('2026-06-15', $data['startDate']);
+        self::assertSame('2026-06-17', $data['endDate']);
         self::assertSame($item->getId(), $data['item']['id']);
         self::assertSame($borrower['email'], $data['borrower']['email']);
     }
@@ -56,10 +62,79 @@ class LoanRequestTest extends WebTestCase
         $client->request(
             'POST',
             sprintf('/api/items/%d/loan-requests', $item->getId()),
-            server: ['HTTP_AUTHORIZATION' => 'Bearer '.$owner['token']],
+            server: [
+                'CONTENT_TYPE' => 'application/json',
+                'HTTP_AUTHORIZATION' => 'Bearer '.$owner['token'],
+            ],
+            content: json_encode($this->payload(), JSON_THROW_ON_ERROR),
         );
 
         self::assertResponseStatusCodeSame(Response::HTTP_CONFLICT);
+    }
+
+    public function testCreateLoanRequestWithoutDatesReturnsBadRequest(): void
+    {
+        $client = static::createClient();
+        $owner = $this->createUser($client);
+        $borrower = $this->createUser($client);
+        $item = $this->createItem($owner['user'], $this->createCategory('Bricolage'), 'Scie sauteuse');
+
+        $client->request(
+            'POST',
+            sprintf('/api/items/%d/loan-requests', $item->getId()),
+            server: [
+                'CONTENT_TYPE' => 'application/json',
+                'HTTP_AUTHORIZATION' => 'Bearer '.$borrower['token'],
+            ],
+            content: json_encode([], JSON_THROW_ON_ERROR),
+        );
+
+        self::assertResponseStatusCodeSame(Response::HTTP_BAD_REQUEST);
+    }
+
+    public function testCreateLoanRequestWithInvalidDateFormatReturnsBadRequest(): void
+    {
+        $client = static::createClient();
+        $owner = $this->createUser($client);
+        $borrower = $this->createUser($client);
+        $item = $this->createItem($owner['user'], $this->createCategory('Bricolage'), 'Niveau laser');
+        $payload = $this->payload();
+        $payload['startDate'] = '15/06/2026';
+
+        $client->request(
+            'POST',
+            sprintf('/api/items/%d/loan-requests', $item->getId()),
+            server: [
+                'CONTENT_TYPE' => 'application/json',
+                'HTTP_AUTHORIZATION' => 'Bearer '.$borrower['token'],
+            ],
+            content: json_encode($payload, JSON_THROW_ON_ERROR),
+        );
+
+        self::assertResponseStatusCodeSame(Response::HTTP_BAD_REQUEST);
+    }
+
+    public function testCreateLoanRequestWithEndDateBeforeStartDateReturnsBadRequest(): void
+    {
+        $client = static::createClient();
+        $owner = $this->createUser($client);
+        $borrower = $this->createUser($client);
+        $item = $this->createItem($owner['user'], $this->createCategory('Bricolage'), 'Ponceuse');
+
+        $client->request(
+            'POST',
+            sprintf('/api/items/%d/loan-requests', $item->getId()),
+            server: [
+                'CONTENT_TYPE' => 'application/json',
+                'HTTP_AUTHORIZATION' => 'Bearer '.$borrower['token'],
+            ],
+            content: json_encode([
+                'startDate' => '2026-06-17',
+                'endDate' => '2026-06-15',
+            ], JSON_THROW_ON_ERROR),
+        );
+
+        self::assertResponseStatusCodeSame(Response::HTTP_BAD_REQUEST);
     }
 
     public function testSentRequestsAreFilteredByBorrower(): void
@@ -257,6 +332,15 @@ class LoanRequestTest extends WebTestCase
         self::assertInstanceOf(LoanRequest::class, $storedLoanRequest);
 
         return $storedLoanRequest;
+    }
+
+    /** @return array{startDate: string, endDate: string} */
+    private function payload(): array
+    {
+        return [
+            'startDate' => '2026-06-15',
+            'endDate' => '2026-06-17',
+        ];
     }
 
     /** @return array<string, mixed> */

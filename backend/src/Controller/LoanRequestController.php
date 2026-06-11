@@ -6,13 +6,14 @@ use App\Entity\User;
 use App\Service\LoanRequestService;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
 use Symfony\Component\HttpFoundation\JsonResponse;
+use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\HttpKernel\Exception\HttpExceptionInterface;
 use Symfony\Component\Routing\Attribute\Route;
 
 class LoanRequestController extends AbstractController
 {
     #[Route('/api/items/{id}/loan-requests', name: 'api_loan_requests_create', requirements: ['id' => '\d+'], methods: ['POST'])]
-    public function create(int $id, LoanRequestService $loanRequestService): JsonResponse
+    public function create(int $id, Request $request, LoanRequestService $loanRequestService): JsonResponse
     {
         $user = $this->getConnectedUser();
 
@@ -20,8 +21,14 @@ class LoanRequestController extends AbstractController
             return $this->json(['message' => 'Authentification requise.'], JsonResponse::HTTP_UNAUTHORIZED);
         }
 
+        $data = $this->decodeJsonBody($request);
+
+        if (!is_array($data)) {
+            return $this->json(['error' => 'Le body JSON est invalide.'], JsonResponse::HTTP_BAD_REQUEST);
+        }
+
         try {
-            $loanRequest = $loanRequestService->create($id, $user);
+            $loanRequest = $loanRequestService->create($id, $data, $user);
         } catch (HttpExceptionInterface $exception) {
             return $this->json(['error' => $exception->getMessage()], $exception->getStatusCode());
         }
@@ -82,6 +89,14 @@ class LoanRequestController extends AbstractController
         }
 
         return $this->json($loanRequestService->formatLoanRequest($loanRequest));
+    }
+
+    /** @return array<string, mixed>|null */
+    private function decodeJsonBody(Request $request): ?array
+    {
+        $data = json_decode($request->getContent(), true);
+
+        return is_array($data) ? $data : null;
     }
 
     private function getConnectedUser(): ?User
