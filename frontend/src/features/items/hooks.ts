@@ -1,6 +1,15 @@
 import { useMutation, useQuery } from '@tanstack/react-query'
 import { getAuthToken } from '../../lib/api.ts'
-import { createItem, getItem, getItems, getMyItems, type ItemFilters } from './services/itemsApi.ts'
+import {
+  createItem,
+  deleteItem,
+  getItem,
+  getItems,
+  getMyItems,
+  updateItem,
+  type ItemFilters,
+  type ItemPayload,
+} from './services/itemsApi.ts'
 
 export function useItemsQuery(filters: ItemFilters = {}) {
   return useQuery({
@@ -29,5 +38,17 @@ export function useMyItemsQuery() {
 export function useCreateItemMutation() {
   return useMutation({
     mutationFn: createItem,
+  })
+}
+
+export function useUpdateItemMutation(id: number) {
+  return useMutation({
+    mutationFn: (payload: ItemPayload) => updateItem(id, payload),
+  })
+}
+
+export function useDeleteItemMutation() {
+  return useMutation({
+    mutationFn: deleteItem,
   })
 }
