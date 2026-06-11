@@ -1,6 +1,6 @@
 import { useMutation, useQuery } from '@tanstack/react-query'
 import { getAuthToken } from '../../lib/api.ts'
-import { getMe, login, register } from './services/authApi.ts'
+import { deleteMe, getMe, login, register } from './services/authApi.ts'
 
 export function useLoginMutation() {
   return useMutation({
@@ -20,5 +20,11 @@ export function useMeQuery() {
     queryFn: getMe,
     enabled: getAuthToken() !== null,
     retry: false,
+  })
+}
+
+export function useDeleteMeMutation() {
+  return useMutation({
+    mutationFn: deleteMe,
   })
 }
