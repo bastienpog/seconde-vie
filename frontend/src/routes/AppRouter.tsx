@@ -1,5 +1,5 @@
 import type { ReactNode } from 'react'
-import { BrowserRouter, Link, NavLink, Route, Routes } from 'react-router'
+import { BrowserRouter, Link, NavLink, Route, Routes, useLocation } from 'react-router'
 import { AdminPage } from '../features/admin/pages/AdminPage.tsx'
 import { LoginPage } from '../features/auth/pages/LoginPage.tsx'
 import { RegisterPage } from '../features/auth/pages/RegisterPage.tsx'
@@ -13,7 +13,18 @@ import { ProfilePage } from '../features/profile/pages/ProfilePage.tsx'
 export function AppRouter() {
   return (
     <BrowserRouter>
-      <div className="min-h-screen bg-slate-50 text-slate-950">
+      <AppShell />
+    </BrowserRouter>
+  )
+}
+
+function AppShell() {
+  const location = useLocation()
+  const isAuthRoute = location.pathname === '/login' || location.pathname === '/register'
+
+  return (
+    <div className={isAuthRoute ? 'min-h-screen bg-[#f5f6f1]' : 'min-h-screen bg-slate-50 text-slate-950'}>
+      {!isAuthRoute && (
         <header className="border-b border-slate-200 bg-white">
           <div className="mx-auto flex max-w-6xl items-center justify-between px-4 py-4">
             <Link className="text-lg font-semibold" to="/">
@@ -30,22 +41,22 @@ export function AppRouter() {
             </nav>
           </div>
         </header>
+      )}
 
-        <main className="mx-auto max-w-6xl px-4 py-8">
-          <Routes>
-            <Route element={<ItemListPage />} path="/" />
-            <Route element={<ItemDetailPage />} path="/items/:id" />
-            <Route element={<ItemCreatePage />} path="/items/new" />
-            <Route element={<MyItemsPage />} path="/me/items" />
-            <Route element={<LoanRequestsPage />} path="/loans" />
-            <Route element={<ProfilePage />} path="/profile" />
-            <Route element={<AdminPage />} path="/admin" />
-            <Route element={<LoginPage />} path="/login" />
-            <Route element={<RegisterPage />} path="/register" />
-          </Routes>
-        </main>
-      </div>
-    </BrowserRouter>
+      <main className={isAuthRoute ? 'min-h-screen' : 'mx-auto max-w-6xl px-4 py-8'}>
+        <Routes>
+          <Route element={<ItemListPage />} path="/" />
+          <Route element={<ItemDetailPage />} path="/items/:id" />
+          <Route element={<ItemCreatePage />} path="/items/new" />
+          <Route element={<MyItemsPage />} path="/me/items" />
+          <Route element={<LoanRequestsPage />} path="/loans" />
+          <Route element={<ProfilePage />} path="/profile" />
+          <Route element={<AdminPage />} path="/admin" />
+          <Route element={<LoginPage />} path="/login" />
+          <Route element={<RegisterPage />} path="/register" />
+        </Routes>
+      </main>
+    </div>
   )
 }
 
