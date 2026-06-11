@@ -1,5 +1,6 @@
 import { useState, type ReactNode } from 'react'
 import { Link } from 'react-router'
+import { ConfirmDialog } from '../../../components/ui/ConfirmDialog.tsx'
 import { ApiError, getAuthToken } from '../../../lib/api.ts'
 import { queryClient } from '../../../lib/queryClient.ts'
 import { BottomNavigation } from '../components/BottomNavigation.tsx'
@@ -12,26 +13,21 @@ export function MyItemsPage() {
   const hasToken = getAuthToken() !== null
   const myItemsQuery = useMyItemsQuery()
   const deleteItemMutation = useDeleteItemMutation()
-  const [deletingItemId, setDeletingItemId] = useState<number | null>(null)
+  const [itemToDelete, setItemToDelete] = useState<Item | null>(null)
   const isUnauthorizedError = myItemsQuery.error instanceof ApiError && myItemsQuery.error.status === 401
 
-  function handleDelete(item: Item) {
-    const confirmed = window.confirm('Supprimer définitivement "' + item.title + '" ?')
-
-    if (!confirmed) {
+  function handleConfirmDelete() {
+    if (itemToDelete === null) {
       return
     }
 
-    setDeletingItemId(item.id)
-    deleteItemMutation.mutate(item.id, {
-      onSettled: () => {
-        setDeletingItemId(null)
-      },
+    deleteItemMutation.mutate(itemToDelete.id, {
       onSuccess: async () => {
         await Promise.all([
           queryClient.invalidateQueries({ queryKey: ['items'] }),
           queryClient.invalidateQueries({ queryKey: ['me', 'items'] }),
         ])
+        setItemToDelete(null)
       },
     })
   }
@@ -112,11 +108,11 @@ export function MyItemsPage() {
                     </Link>
                     <button
                       className="inline-flex h-10 items-center justify-center rounded-full bg-red-50 px-3 text-xs font-bold text-red-700 transition hover:bg-red-100 disabled:cursor-not-allowed disabled:opacity-70 sm:text-sm"
-                      disabled={deleteItemMutation.isPending && deletingItemId === item.id}
-                      onClick={() => handleDelete(item)}
+                      disabled={deleteItemMutation.isPending}
+                      onClick={() => setItemToDelete(item)}
                       type="button"
                     >
-                      {deleteItemMutation.isPending && deletingItemId === item.id ? 'Suppression...' : 'Supprimer'}
+                      Supprimer
                     </button>
                   </div>
                 </div>
@@ -125,6 +121,17 @@ export function MyItemsPage() {
           </>
         )}
       </div>
+
+      <ConfirmDialog
+        confirmLabel="Supprimer"
+        isLoading={deleteItemMutation.isPending}
+        isOpen={itemToDelete !== null}
+        onCancel={() => setItemToDelete(null)}
+        onConfirm={handleConfirmDelete}
+        title="Supprimer cet objet ?"
+      >
+        Cette action supprimera définitivement {itemToDelete?.title}. Elle ne pourra pas être annulée.
+      </ConfirmDialog>
 
       <BottomNavigation />
     </div>
