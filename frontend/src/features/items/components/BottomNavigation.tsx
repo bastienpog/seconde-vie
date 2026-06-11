@@ -10,18 +10,19 @@ export function BottomNavigation({ showCreateButton = true }: BottomNavigationPr
     <>
       {showCreateButton && (
         <NavLink
-        className="fixed bottom-[5.75rem] right-4 z-30 flex items-center gap-2 rounded-full bg-[#1a4231] px-5 py-3 text-sm font-bold text-white shadow-xl shadow-[#1a4231]/30 sm:hidden"
-        to="/items/new"
+          className="fixed bottom-[5.75rem] right-4 z-30 flex items-center gap-2 rounded-full bg-[#1a4231] px-5 py-3 text-sm font-bold text-white shadow-xl shadow-[#1a4231]/30 sm:hidden"
+          to="/items/new"
         >
           <PlusIcon />
           Créer une annonce
         </NavLink>
       )}
 
-      <nav className="fixed inset-x-0 bottom-0 z-20 border-t border-slate-100 bg-white px-8 pb-5 pt-3 shadow-[0_-8px_24px_rgba(15,23,42,0.04)] sm:hidden">
-        <div className="mx-auto grid max-w-md grid-cols-3 items-end">
+      <nav className="fixed inset-x-0 bottom-0 z-20 border-t border-slate-100 bg-white px-6 pb-5 pt-3 shadow-[0_-8px_24px_rgba(15,23,42,0.04)] sm:hidden">
+        <div className="mx-auto grid max-w-md grid-cols-4 items-end">
           <BottomNavigationLink icon={<HomeIcon />} label="Accueil" to="/" />
-          <BottomNavigationLink icon={<BoxIcon />} label="Mes objets" to="/me/items" />
+          <BottomNavigationLink icon={<BoxIcon />} label="Objets" to="/me/items" />
+          <BottomNavigationLink icon={<LoanIcon />} label="Demandes" to="/loans" />
           <BottomNavigationLink icon={<UserIcon />} label="Profil" to="/profile" />
         </div>
       </nav>
@@ -68,6 +69,16 @@ function BoxIcon() {
       <path d="m21 8-9-5-9 5 9 5 9-5Z" />
       <path d="M3 8v8l9 5 9-5V8" />
       <path d="M12 13v8" />
+    </svg>
+  )
+}
+
+function LoanIcon() {
+  return (
+    <svg fill="none" stroke="currentColor" strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" viewBox="0 0 24 24">
+      <path d="M21 15a4 4 0 0 1-4 4H7l-4 4V7a4 4 0 0 1 4-4h10a4 4 0 0 1 4 4z" />
+      <path d="M8 9h8" />
+      <path d="M8 13h5" />
     </svg>
   )
 }
