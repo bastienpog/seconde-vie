@@ -1,5 +1,6 @@
 import { useQuery } from '@tanstack/react-query'
-import { getItem, getItems, type ItemFilters } from './services/itemsApi.ts'
+import { getAuthToken } from '../../lib/api.ts'
+import { getItem, getItems, getMyItems, type ItemFilters } from './services/itemsApi.ts'
 
 export function useItemsQuery(filters: ItemFilters = {}) {
   return useQuery({
@@ -13,5 +14,14 @@ export function useItemQuery(id: number) {
     queryKey: ['items', id],
     queryFn: () => getItem(id),
     enabled: Number.isFinite(id),
+  })
+}
+
+export function useMyItemsQuery() {
+  return useQuery({
+    queryKey: ['me', 'items'],
+    queryFn: getMyItems,
+    enabled: getAuthToken() !== null,
+    retry: false,
   })
 }
