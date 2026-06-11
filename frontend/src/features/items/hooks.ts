@@ -1,6 +1,6 @@
-import { useQuery } from '@tanstack/react-query'
+import { useMutation, useQuery } from '@tanstack/react-query'
 import { getAuthToken } from '../../lib/api.ts'
-import { getItem, getItems, getMyItems, type ItemFilters } from './services/itemsApi.ts'
+import { createItem, getItem, getItems, getMyItems, type ItemFilters } from './services/itemsApi.ts'
 
 export function useItemsQuery(filters: ItemFilters = {}) {
   return useQuery({
@@ -23,5 +23,11 @@ export function useMyItemsQuery() {
     queryFn: getMyItems,
     enabled: getAuthToken() !== null,
     retry: false,
+  })
+}
+
+export function useCreateItemMutation() {
+  return useMutation({
+    mutationFn: createItem,
   })
 }
