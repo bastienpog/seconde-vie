@@ -2,6 +2,7 @@ import { NavLink } from 'react-router'
 
 const navigationLinks = [
   { label: 'Mes objets', to: '/me/items' },
+  { label: 'Demandes', to: '/loans' },
   { label: 'Profil', to: '/profile' },
 ]
 
