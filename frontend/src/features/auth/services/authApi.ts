@@ -39,3 +39,9 @@ export function register(payload: RegisterPayload): Promise<{ message: string }>
 export function getMe(): Promise<AuthenticatedUser> {
   return apiRequest<AuthenticatedUser>('/me')
 }
+
+export function deleteMe(): Promise<void> {
+  return apiRequest<void>('/me', {
+    method: 'DELETE',
+  })
+}
