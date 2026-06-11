@@ -1,4 +1,10 @@
-import { Link, useParams } from 'react-router'
+import { useState } from 'react'
+import { Link, useNavigate, useParams } from 'react-router'
+import { getAuthToken } from '../../../lib/api.ts'
+import { queryClient } from '../../../lib/queryClient.ts'
+import { LoanRequestSheet } from '../../loans/components/LoanRequestSheet.tsx'
+import { useCreateLoanRequestMutation } from '../../loans/hooks.ts'
+import type { CreateLoanRequestPayload } from '../../loans/services/loansApi.ts'
 import { BottomNavigation } from '../components/BottomNavigation.tsx'
 import { DesktopNavigation } from '../components/DesktopNavigation.tsx'
 import { ItemImage } from '../components/ItemImage.tsx'
@@ -6,8 +12,34 @@ import { useItemQuery } from '../hooks.ts'
 
 export function ItemDetailPage() {
   const { id } = useParams()
+  const navigate = useNavigate()
   const itemId = Number(id)
   const itemQuery = useItemQuery(itemId)
+  const createLoanRequestMutation = useCreateLoanRequestMutation(itemId)
+  const [isLoanSheetOpen, setIsLoanSheetOpen] = useState(false)
+  const [loanRequestSuccessMessage, setLoanRequestSuccessMessage] = useState<string | null>(null)
+  const hasToken = getAuthToken() !== null
+
+  function handleOpenLoanRequest() {
+    if (!hasToken) {
+      navigate('/login')
+      return
+    }
+
+    setLoanRequestSuccessMessage(null)
+    createLoanRequestMutation.reset()
+    setIsLoanSheetOpen(true)
+  }
+
+  function handleSubmitLoanRequest(payload: CreateLoanRequestPayload) {
+    createLoanRequestMutation.mutate(payload, {
+      onSuccess: async () => {
+        await queryClient.invalidateQueries({ queryKey: ['loan-requests', 'sent'] })
+        setIsLoanSheetOpen(false)
+        setLoanRequestSuccessMessage("Votre demande d'emprunt a été envoyée.")
+      },
+    })
+  }
 
   if (!Number.isFinite(itemId)) {
     return <DetailState message="L'identifiant de l'objet est invalide." title="Objet introuvable" />
@@ -103,10 +135,10 @@ export function ItemDetailPage() {
             <div className="mt-5 grid gap-3 sm:grid-cols-2 lg:mt-6 lg:grid-cols-1">
               <button
                 className="rounded-full bg-[#1a4231] px-5 py-4 text-sm font-bold text-white shadow-lg shadow-[#1a4231]/15 transition hover:bg-[#143629] disabled:cursor-not-allowed disabled:opacity-70"
-                disabled
+                onClick={handleOpenLoanRequest}
                 type="button"
               >
-                Demander un emprunt
+                {hasToken ? 'Demander un emprunt' : 'Se connecter pour emprunter'}
               </button>
               <Link
                 className="inline-flex items-center justify-center rounded-full bg-[#edf1ea] px-5 py-4 text-sm font-bold text-[#1a4231] transition hover:bg-[#e2ebe4]"
@@ -116,12 +148,23 @@ export function ItemDetailPage() {
               </Link>
             </div>
 
-            <p className="mt-3 text-center text-xs text-slate-400 lg:text-left">
-              La demande d'emprunt sera disponible dans une prochaine étape.
-            </p>
+            {loanRequestSuccessMessage !== null && (
+              <p className="mt-3 rounded-2xl bg-[#e8f0ea] px-4 py-3 text-center text-sm font-semibold text-[#1a4231] lg:text-left">
+                {loanRequestSuccessMessage}
+              </p>
+            )}
           </section>
         </article>
       </div>
+
+      <LoanRequestSheet
+        error={createLoanRequestMutation.error}
+        isOpen={isLoanSheetOpen}
+        isPending={createLoanRequestMutation.isPending}
+        item={item}
+        onClose={() => setIsLoanSheetOpen(false)}
+        onSubmit={handleSubmitLoanRequest}
+      />
 
       <BottomNavigation showCreateButton={false} />
     </div>

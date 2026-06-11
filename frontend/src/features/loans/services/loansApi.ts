@@ -3,6 +3,8 @@ import { apiRequest } from '../../../lib/api.ts'
 export type LoanRequest = {
   id: number
   status: string
+  startDate: string
+  endDate: string
   item: {
     id: number
     title: string
@@ -20,9 +22,15 @@ export type LoanRequest = {
   updatedAt: string
 }
 
-export function createLoanRequest(itemId: number): Promise<LoanRequest> {
+export type CreateLoanRequestPayload = {
+  startDate: string
+  endDate: string
+}
+
+export function createLoanRequest(itemId: number, payload: CreateLoanRequestPayload): Promise<LoanRequest> {
   return apiRequest<LoanRequest>(`/items/${itemId}/loan-requests`, {
     method: 'POST',
+    body: payload,
   })
 }
 
