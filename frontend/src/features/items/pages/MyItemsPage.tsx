@@ -1,15 +1,36 @@
-import type { ReactNode } from 'react'
+import { useState, type ReactNode } from 'react'
 import { Link } from 'react-router'
+import { ConfirmDialog } from '../../../components/ui/ConfirmDialog.tsx'
 import { ApiError, getAuthToken } from '../../../lib/api.ts'
+import { queryClient } from '../../../lib/queryClient.ts'
 import { BottomNavigation } from '../components/BottomNavigation.tsx'
 import { DesktopNavigation } from '../components/DesktopNavigation.tsx'
 import { ItemCard } from '../components/ItemCard.tsx'
-import { useMyItemsQuery } from '../hooks.ts'
+import { useDeleteItemMutation, useMyItemsQuery } from '../hooks.ts'
+import type { Item } from '../services/itemsApi.ts'
 
 export function MyItemsPage() {
   const hasToken = getAuthToken() !== null
   const myItemsQuery = useMyItemsQuery()
+  const deleteItemMutation = useDeleteItemMutation()
+  const [itemToDelete, setItemToDelete] = useState<Item | null>(null)
   const isUnauthorizedError = myItemsQuery.error instanceof ApiError && myItemsQuery.error.status === 401
+
+  function handleConfirmDelete() {
+    if (itemToDelete === null) {
+      return
+    }
+
+    deleteItemMutation.mutate(itemToDelete.id, {
+      onSuccess: async () => {
+        await Promise.all([
+          queryClient.invalidateQueries({ queryKey: ['items'] }),
+          queryClient.invalidateQueries({ queryKey: ['me', 'items'] }),
+        ])
+        setItemToDelete(null)
+      },
+    })
+  }
 
   return (
     <div className="min-h-screen bg-[#fdfcf8] pb-32 text-slate-950 sm:bg-[#f8f8f3] sm:pb-12">
@@ -67,13 +88,50 @@ export function MyItemsPage() {
         )}
 
         {hasToken && myItemsQuery.isSuccess && myItemsQuery.data.length > 0 && (
-          <div className="grid grid-cols-2 gap-x-4 gap-y-7 sm:grid-cols-3 sm:gap-x-5 sm:gap-y-8 lg:grid-cols-4 lg:gap-x-6 lg:gap-y-10">
-            {myItemsQuery.data.map((item) => (
-              <ItemCard item={item} key={item.id} />
-            ))}
-          </div>
+          <>
+            {deleteItemMutation.isError && (
+              <div className="mb-5 rounded-2xl bg-red-50 px-4 py-3 text-sm font-semibold text-red-700">
+                {getDeleteErrorMessage(deleteItemMutation.error)}
+              </div>
+            )}
+
+            <div className="grid grid-cols-2 gap-x-4 gap-y-7 sm:grid-cols-3 sm:gap-x-5 sm:gap-y-8 lg:grid-cols-4 lg:gap-x-6 lg:gap-y-10">
+              {myItemsQuery.data.map((item) => (
+                <div className="flex min-w-0 flex-col gap-3" key={item.id}>
+                  <ItemCard item={item} />
+                  <div className="grid grid-cols-2 gap-2 px-1">
+                    <Link
+                      className="inline-flex h-10 items-center justify-center rounded-full bg-[#edf1ea] px-3 text-xs font-bold text-[#1a4231] transition hover:bg-[#e2ebe4] sm:text-sm"
+                      to={'/items/' + item.id + '/edit'}
+                    >
+                      Modifier
+                    </Link>
+                    <button
+                      className="inline-flex h-10 items-center justify-center rounded-full bg-red-50 px-3 text-xs font-bold text-red-700 transition hover:bg-red-100 disabled:cursor-not-allowed disabled:opacity-70 sm:text-sm"
+                      disabled={deleteItemMutation.isPending}
+                      onClick={() => setItemToDelete(item)}
+                      type="button"
+                    >
+                      Supprimer
+                    </button>
+                  </div>
+                </div>
+              ))}
+            </div>
+          </>
         )}
       </div>
+
+      <ConfirmDialog
+        confirmLabel="Supprimer"
+        isLoading={deleteItemMutation.isPending}
+        isOpen={itemToDelete !== null}
+        onCancel={() => setItemToDelete(null)}
+        onConfirm={handleConfirmDelete}
+        title="Supprimer cet objet ?"
+      >
+        Cette action supprimera définitivement {itemToDelete?.title}. Elle ne pourra pas être annulée.
+      </ConfirmDialog>
 
       <BottomNavigation />
     </div>
@@ -147,4 +205,12 @@ function ItemGridSkeleton() {
       ))}
     </div>
   )
+}
+
+function getDeleteErrorMessage(error: unknown): string {
+  if (error instanceof ApiError) {
+    return error.message
+  }
+
+  return error instanceof Error ? error.message : "La suppression de l'objet a échoué."
 }
