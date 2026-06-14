@@ -25,6 +25,9 @@ COPY . .
 
 RUN composer install --no-interaction --prefer-dist
 
+RUN chmod +x docker-entrypoint.sh
+
 EXPOSE 9000
 
+ENTRYPOINT ["./docker-entrypoint.sh"]
 CMD ["php-fpm"]
