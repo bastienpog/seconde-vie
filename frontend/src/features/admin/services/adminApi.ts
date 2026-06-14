@@ -1,5 +1,6 @@
 import { apiRequest } from '../../../lib/api.ts'
 import type { Category } from '../../categories/services/categoriesApi.ts'
+import type { AuthenticatedUser } from '../../auth/services/authApi.ts'
 import type { Item } from '../../items/services/itemsApi.ts'
 
 export type CategoryPayload = {
@@ -37,5 +38,12 @@ export function getAdminItems(): Promise<Item[]> {
 export function deleteAdminItem(id: number): Promise<void> {
   return apiRequest<void>(`/admin/items/${id}`, {
     method: 'DELETE',
+  })
+}
+
+export function promoteUserToAdmin(email: string): Promise<AuthenticatedUser> {
+  return apiRequest<AuthenticatedUser>('/admin/users/promote', {
+    method: 'POST',
+    body: { email },
   })
 }

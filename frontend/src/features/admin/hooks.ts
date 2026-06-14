@@ -5,6 +5,7 @@ import {
   deleteCategory,
   getAdminCategories,
   getAdminItems,
+  promoteUserToAdmin,
   updateCategory,
   type CategoryPayload,
 } from './services/adminApi.ts'
@@ -45,5 +46,11 @@ export function useAdminItemsQuery() {
 export function useDeleteAdminItemMutation() {
   return useMutation({
     mutationFn: deleteAdminItem,
+  })
+}
+
+export function usePromoteUserToAdminMutation() {
+  return useMutation({
+    mutationFn: promoteUserToAdmin,
   })
 }

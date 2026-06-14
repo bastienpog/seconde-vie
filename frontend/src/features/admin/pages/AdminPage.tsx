@@ -12,6 +12,7 @@ import {
   useCreateCategoryMutation,
   useDeleteAdminItemMutation,
   useDeleteCategoryMutation,
+  usePromoteUserToAdminMutation,
   useUpdateCategoryMutation,
 } from '../hooks.ts'
 
@@ -26,7 +27,9 @@ export function AdminPage() {
   const updateCategoryMutation = useUpdateCategoryMutation()
   const deleteCategoryMutation = useDeleteCategoryMutation()
   const deleteAdminItemMutation = useDeleteAdminItemMutation()
+  const promoteUserToAdminMutation = usePromoteUserToAdminMutation()
   const [newCategoryName, setNewCategoryName] = useState('')
+  const [adminUserEmail, setAdminUserEmail] = useState('')
   const [editedCategory, setEditedCategory] = useState<Category | null>(null)
   const [deleteTarget, setDeleteTarget] = useState<DeleteTarget | null>(null)
 
@@ -63,6 +66,22 @@ export function AdminPage() {
       onSuccess: async () => {
         setEditedCategory(null)
         await queryClient.invalidateQueries({ queryKey: ['categories'] })
+      },
+    })
+  }
+
+  function handlePromoteUser(event: FormEvent<HTMLFormElement>) {
+    event.preventDefault()
+    const email = adminUserEmail.trim()
+
+    if (email === '') {
+      return
+    }
+
+    promoteUserToAdminMutation.mutate(email, {
+      onSuccess: async () => {
+        setAdminUserEmail('')
+        await queryClient.invalidateQueries({ queryKey: ['me'] })
       },
     })
   }
@@ -115,6 +134,39 @@ export function AdminPage() {
             <DesktopNavigation />
           </div>
         </header>
+
+        <section className="mb-6 rounded-[1.5rem] bg-white p-5 shadow-sm sm:p-6">
+          <div className="flex flex-col gap-4 sm:flex-row sm:items-start sm:justify-between">
+            <div>
+              <h2 className="text-lg font-bold text-slate-950">Utilisateurs</h2>
+              <p className="mt-1 text-sm leading-6 text-slate-500">Ajoutez le role administrateur a un utilisateur existant.</p>
+            </div>
+          </div>
+
+          <form className="mt-5 flex flex-col gap-3 sm:flex-row" onSubmit={handlePromoteUser}>
+            <input
+              className="h-12 min-w-0 flex-1 rounded-2xl border border-slate-200 bg-white px-4 text-sm font-semibold outline-none transition focus:border-[#1a4231]"
+              onChange={(event) => setAdminUserEmail(event.target.value)}
+              placeholder="email@exemple.com"
+              type="email"
+              value={adminUserEmail}
+            />
+            <button
+              className="h-12 rounded-full bg-[#1a4231] px-5 text-sm font-bold text-white transition hover:bg-[#143629] disabled:cursor-not-allowed disabled:opacity-70"
+              disabled={promoteUserToAdminMutation.isPending || adminUserEmail.trim() === ''}
+              type="submit"
+            >
+              Ajouter admin
+            </button>
+          </form>
+
+          {promoteUserToAdminMutation.isError && <ErrorMessage error={promoteUserToAdminMutation.error} />}
+          {promoteUserToAdminMutation.isSuccess && (
+            <p className="mt-4 rounded-2xl bg-[#edf1ea] px-4 py-3 text-sm font-semibold text-[#1a4231]">
+              {promoteUserToAdminMutation.data.email} est maintenant administrateur.
+            </p>
+          )}
+        </section>
 
         <main className="grid gap-6 lg:grid-cols-[minmax(0,0.9fr)_minmax(0,1.2fr)]">
           <section className="rounded-[1.5rem] bg-white p-5 shadow-sm sm:p-6">
