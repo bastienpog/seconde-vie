@@ -17,7 +17,7 @@ Le projet a un objectif pédagogique et écologique : sensibiliser à la surcons
 
 - Inscription
 - Connexion
-- Publication d'une annonce d'objet
+- Publication d'un item
 - Consultation de la liste des objets
 - Consultation d'une fiche objet
 - Recherche par mot-clé
@@ -26,7 +26,7 @@ Le projet a un objectif pédagogique et écologique : sensibiliser à la surcons
 - Demande de réservation ou d'emprunt
 - Acceptation/refus d'une demande par le propriétaire
 - Suppression de compte
-- Administration minimale des annonces et catégories
+- Administration minimale des items et catégories
 
 ## Hors périmètre du MVP
 
@@ -48,7 +48,6 @@ cd frontend
 npm install
 npm run dev
 npm run lint
-npm run test
 npm run build
 ```
 
@@ -90,7 +89,7 @@ Utiliser Conventional Commits :
 feat: ajoute la publication d'objet
 fix: corrige la validation du formulaire
 refactor: simplifie le service de réservation
-test: ajoute les tests d'intégration des annonces
+test: ajoute les tests d'intégration des items
 docs: met à jour le périmètre du projet
 chore: configure les outils de développement
 ```
