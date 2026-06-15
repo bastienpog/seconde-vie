@@ -55,6 +55,12 @@ class ItemRepository extends ServiceEntityRepository
     }
 
     /** @return list<Item> */
+    public function findAllForAdmin(): array
+    {
+        return $this->findBy([], ['createdAt' => 'DESC']);
+    }
+
+    /** @return list<Item> */
     public function findByOwner(User $owner): array
     {
         return $this->findBy(['owner' => $owner], ['createdAt' => 'DESC']);

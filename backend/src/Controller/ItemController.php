@@ -26,6 +26,12 @@ class ItemController extends AbstractController
         ));
     }
 
+    #[Route('/api/admin/items', name: 'api_admin_items_list', methods: ['GET'])]
+    public function listForAdmin(ItemService $itemService): JsonResponse
+    {
+        return $this->json($itemService->listForAdmin());
+    }
+
     #[Route('/api/me/items', name: 'api_me_items_list', methods: ['GET'])]
     public function listMine(ItemService $itemService): JsonResponse
     {
@@ -120,6 +126,26 @@ class ItemController extends AbstractController
         }
 
         return $this->json($itemService->formatItem($item));
+    }
+
+    #[Route('/api/admin/items/{id}', name: 'api_admin_items_delete', requirements: ['id' => '\d+'], methods: ['DELETE'])]
+    public function deleteForAdmin(int $id, ItemService $itemService): JsonResponse
+    {
+        $user = $this->getUser();
+
+        if (!$user instanceof User) {
+            return $this->json(['message' => 'Authentification requise.'], JsonResponse::HTTP_UNAUTHORIZED);
+        }
+
+        try {
+            $itemService->delete($id, $user);
+        } catch (HttpExceptionInterface $exception) {
+            return $this->json([
+                'error' => $exception->getMessage(),
+            ], $exception->getStatusCode());
+        }
+
+        return $this->json(null, JsonResponse::HTTP_NO_CONTENT);
     }
 
     #[Route('/api/items/{id}', name: 'api_items_delete', requirements: ['id' => '\d+'], methods: ['DELETE'])]

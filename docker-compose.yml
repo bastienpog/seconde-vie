@@ -46,14 +46,11 @@ services:
   database:
     image: mysql:8.0
     container_name: seconde_vie_mysql
-    restart: unless-stopped
     environment:
       MYSQL_DATABASE: ${MYSQL_DATABASE:-seconde_vie}
       MYSQL_USER: ${MYSQL_USER:-seconde_vie}
       MYSQL_PASSWORD: ${MYSQL_PASSWORD:-seconde_vie_password}
       MYSQL_ROOT_PASSWORD: ${MYSQL_ROOT_PASSWORD:-root_password}
-    ports:
-      - "3306:3306"
     volumes:
       - database_data:/var/lib/mysql
     healthcheck:
@@ -66,7 +63,6 @@ services:
   phpmyadmin:
     image: phpmyadmin:latest
     container_name: seconde_vie_phpmyadmin
-    restart: unless-stopped
     environment:
       PMA_HOST: database
       PMA_USER: ${MYSQL_USER:-seconde_vie}

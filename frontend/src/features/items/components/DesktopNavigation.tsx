@@ -1,4 +1,5 @@
 import { NavLink } from 'react-router'
+import { useMeQuery } from '../../auth/hooks.ts'
 
 const navigationLinks = [
   { label: 'Mes objets', to: '/me/items' },
@@ -7,9 +8,14 @@ const navigationLinks = [
 ]
 
 export function DesktopNavigation() {
+  const meQuery = useMeQuery()
+  const links = meQuery.data?.roles.includes('ROLE_ADMIN') === true
+    ? [...navigationLinks, { label: 'Administration', to: '/admin' }]
+    : navigationLinks
+
   return (
     <nav aria-label="Navigation principale" className="hidden items-center gap-3 sm:flex">
-      {navigationLinks.map((link) => (
+      {links.map((link) => (
         <NavLink
           className={({ isActive }) =>
             [

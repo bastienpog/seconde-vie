@@ -30,6 +30,15 @@ class ItemService
     }
 
     /** @return list<array<string, mixed>> */
+    public function listForAdmin(): array
+    {
+        return array_map(
+            fn (Item $item): array => $this->formatItem($item),
+            $this->itemRepository->findAllForAdmin(),
+        );
+    }
+
+    /** @return list<array<string, mixed>> */
     public function listOwnedBy(User $owner): array
     {
         return array_map(
