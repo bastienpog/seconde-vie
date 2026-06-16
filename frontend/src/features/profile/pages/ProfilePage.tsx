@@ -1,5 +1,6 @@
 import { useState, type ReactNode } from 'react'
 import { Link, useNavigate } from 'react-router'
+import { AppHeader } from '../../../components/ui/AppHeader.tsx'
 import { ApiError, clearAuthToken, getAuthToken } from '../../../lib/api.ts'
 import { queryClient } from '../../../lib/queryClient.ts'
 import { useDeleteMeMutation, useMeQuery } from '../../auth/hooks.ts'
@@ -31,21 +32,15 @@ export function ProfilePage() {
 
   return (
     <div className="min-h-screen bg-[#fdfcf8] pb-32 text-slate-950 sm:bg-[#f8f8f3] sm:pb-12">
-      <div className="mx-auto w-full max-w-6xl px-4 pt-5 sm:px-5 sm:pt-7 lg:px-6 lg:pt-8">
-        <header className="mb-6 sm:mb-7 sm:flex sm:items-center sm:justify-between sm:gap-6">
-          <div>
-            <h1 className="text-center text-2xl font-bold tracking-tight text-[#1a4231] sm:text-left sm:text-4xl">
-              Profil
-            </h1>
-            <p className="mt-3 hidden max-w-lg text-sm leading-6 text-slate-600 sm:block">
-              Consultez vos informations et gérez votre compte Seconde Vie.
-            </p>
-          </div>
+      <AppHeader navigation={<DesktopNavigation />} />
 
-          <div className="hidden shrink-0 items-center gap-3 sm:flex">
-            <DesktopNavigation />
-          </div>
-        </header>
+      <div className="mx-auto w-full max-w-6xl px-4 pt-5 sm:px-5 sm:pt-0 lg:px-6">
+        <section className="mb-6 sm:mb-7">
+          <h1 className="text-2xl font-bold tracking-tight text-[#1a4231] sm:text-4xl">Profil</h1>
+          <p className="mt-3 hidden max-w-lg text-sm leading-6 text-slate-600 sm:block">
+            Consultez vos informations et gérez votre compte Seconde Vie.
+          </p>
+        </section>
 
         {!hasToken && <AuthRequiredState />}
 

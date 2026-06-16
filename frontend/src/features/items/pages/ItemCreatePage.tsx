@@ -1,5 +1,6 @@
 import type { ReactNode } from 'react'
 import { Link, useNavigate } from 'react-router'
+import { AppHeader } from '../../../components/ui/AppHeader.tsx'
 import { getAuthToken } from '../../../lib/api.ts'
 import { queryClient } from '../../../lib/queryClient.ts'
 import { DesktopNavigation } from '../components/DesktopNavigation.tsx'
@@ -61,31 +62,15 @@ export function ItemFormPageShell({
 }) {
   return (
     <div className="min-h-screen bg-[#fdfcf8] text-slate-950 sm:bg-[#f8f8f3]">
-      <header className="sticky top-0 z-10 border-b border-[#1a4231]/10 bg-[#fdfcf8]/95 backdrop-blur sm:static sm:bg-transparent">
-        <div className="mx-auto grid h-16 max-w-6xl grid-cols-[2.5rem_1fr_2.5rem] items-center px-6 sm:flex sm:h-auto sm:justify-between sm:gap-6 sm:px-5 sm:py-7 lg:px-6 lg:py-8">
-          <Link
-            aria-label="Retour"
-            className="flex h-10 w-10 items-center justify-center rounded-full text-[#1a4231] transition hover:bg-[#edf1ea]"
-            to={backTo}
-          >
-            <ArrowLeftIcon />
-          </Link>
-
-          <div className="text-center sm:text-left">
-            <h1 className="text-lg font-bold text-[#1a4231] sm:text-4xl">{title}</h1>
-            <p className="mt-3 hidden max-w-lg text-sm leading-6 text-slate-600 sm:block">
-              {description}
-            </p>
-          </div>
-
-          <div className="hidden sm:flex">
-            <DesktopNavigation />
-          </div>
-          <span className="h-10 w-10 sm:hidden" />
-        </div>
-      </header>
+      <AppHeader mobileBackTo={backTo} navigation={<DesktopNavigation />} />
 
       <main className="mx-auto w-full max-w-6xl px-6 py-8 sm:px-5 sm:pt-0 lg:px-6">
+        <section className="mb-8 text-center sm:text-left">
+          <h1 className="text-2xl font-bold tracking-tight text-[#1a4231] sm:text-4xl">{title}</h1>
+          <p className="mt-3 hidden max-w-lg text-sm leading-6 text-slate-600 sm:block">
+            {description}
+          </p>
+        </section>
         {children}
       </main>
     </div>
@@ -127,11 +112,3 @@ function StateMessage({ action, message, title }: { action?: ReactNode; message:
   )
 }
 
-function ArrowLeftIcon() {
-  return (
-    <svg className="h-5 w-5" fill="none" stroke="currentColor" strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" viewBox="0 0 24 24">
-      <path d="m12 19-7-7 7-7" />
-      <path d="M19 12H5" />
-    </svg>
-  )
-}

@@ -1,5 +1,6 @@
 import { useState, type ReactNode } from 'react'
 import { Link } from 'react-router'
+import { AppHeader } from '../../../components/ui/AppHeader.tsx'
 import { ApiError, getAuthToken } from '../../../lib/api.ts'
 import { queryClient } from '../../../lib/queryClient.ts'
 import { BottomNavigation } from '../../items/components/BottomNavigation.tsx'
@@ -50,20 +51,7 @@ export function LoanRequestsPage() {
 
   return (
     <div className="min-h-screen bg-[#f5f6f1] pb-32 text-slate-950 sm:pb-12">
-      <header className="sticky top-0 z-10 bg-[#fdfcf8]/90 backdrop-blur sm:static sm:bg-transparent">
-        <div className="mx-auto flex h-16 w-full max-w-6xl items-center justify-between px-6 sm:h-auto sm:px-5 sm:py-7 lg:px-6 lg:py-8">
-          <Link aria-label="Accueil" className="flex h-10 w-10 items-center justify-center rounded-full bg-[#f5f2e8] text-[#1a4231] ring-2 ring-[#1a4231]/10" to="/">
-            <HomeIcon />
-          </Link>
-          <p className="text-lg font-bold text-[#1a4231] sm:text-3xl">Seconde Vie</p>
-          <div className="hidden sm:block">
-            <DesktopNavigation />
-          </div>
-          <span className="flex h-10 w-10 items-center justify-center text-[#1a4231] sm:hidden">
-            <BellIcon />
-          </span>
-        </div>
-      </header>
+      <AppHeader navigation={<DesktopNavigation />} />
 
       <main className="mx-auto flex w-full max-w-6xl flex-col gap-8 px-6 pt-5 sm:px-5 sm:pt-0 lg:px-6">
         <section className="flex flex-col gap-6">
@@ -323,24 +311,6 @@ function getErrorMessage(error: unknown): string {
   return error instanceof Error ? error.message : "Le traitement de la demande a échoué."
 }
 
-function HomeIcon() {
-  return (
-    <svg className="h-5 w-5" fill="none" stroke="currentColor" strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" viewBox="0 0 24 24">
-      <path d="m3 11 9-8 9 8" />
-      <path d="M5 10v10h14V10" />
-      <path d="M9 20v-6h6v6" />
-    </svg>
-  )
-}
-
-function BellIcon() {
-  return (
-    <svg className="h-5 w-5" fill="none" stroke="currentColor" strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" viewBox="0 0 24 24">
-      <path d="M10.268 21a2 2 0 0 0 3.464 0" />
-      <path d="M3.262 15.326A1 1 0 0 0 4 17h16a1 1 0 0 0 .74-1.673C19.41 13.956 18 12.499 18 8a6 6 0 0 0-12 0c0 4.499-1.411 5.956-2.738 7.326" />
-    </svg>
-  )
-}
 
 function BoxIcon() {
   return (
