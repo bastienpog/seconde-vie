@@ -1,4 +1,5 @@
 import { useState, type FormEvent, type ReactNode } from 'react'
+import { AppHeader } from '../../../components/ui/AppHeader.tsx'
 import { ConfirmDialog } from '../../../components/ui/ConfirmDialog.tsx'
 import { ApiError } from '../../../lib/api.ts'
 import { queryClient } from '../../../lib/queryClient.ts'
@@ -119,27 +120,21 @@ export function AdminPage() {
 
   return (
     <div className="min-h-screen bg-[#fdfcf8] pb-32 text-slate-950 sm:bg-[#f8f8f3] sm:pb-12">
-      <div className="mx-auto w-full max-w-6xl px-4 pt-5 sm:px-5 sm:pt-7 lg:px-6 lg:pt-8">
-        <header className="mb-6 sm:mb-7 sm:flex sm:items-center sm:justify-between sm:gap-6">
-          <div>
-            <h1 className="text-center text-2xl font-bold tracking-tight text-[#1a4231] sm:text-left sm:text-4xl">
-              Administration
-            </h1>
-            <p className="mt-3 hidden max-w-lg text-sm leading-6 text-slate-600 sm:block">
-              Gestion minimale des categories et des objets publies.
-            </p>
-          </div>
+      <AppHeader navigation={<DesktopNavigation />} />
 
-          <div className="hidden shrink-0 items-center gap-3 sm:flex">
-            <DesktopNavigation />
-          </div>
-        </header>
+      <div className="mx-auto w-full max-w-6xl px-4 pt-5 sm:px-5 sm:pt-0 lg:px-6">
+        <section className="mb-6 sm:mb-7">
+          <h1 className="text-2xl font-bold tracking-tight text-[#1a4231] sm:text-4xl">Administration</h1>
+          <p className="mt-3 hidden max-w-lg text-sm leading-6 text-slate-600 sm:block">
+            Gestion minimale des catégories et des objets publiés.
+          </p>
+        </section>
 
         <section className="mb-6 rounded-[1.5rem] bg-white p-5 shadow-sm sm:p-6">
           <div className="flex flex-col gap-4 sm:flex-row sm:items-start sm:justify-between">
             <div>
               <h2 className="text-lg font-bold text-slate-950">Utilisateurs</h2>
-              <p className="mt-1 text-sm leading-6 text-slate-500">Ajoutez le role administrateur a un utilisateur existant.</p>
+              <p className="mt-1 text-sm leading-6 text-slate-500">Ajoutez le rôle administrateur à un utilisateur existant.</p>
             </div>
           </div>
 
@@ -172,7 +167,7 @@ export function AdminPage() {
           <section className="rounded-[1.5rem] bg-white p-5 shadow-sm sm:p-6">
             <div className="flex items-start justify-between gap-4">
               <div>
-                <h2 className="text-lg font-bold text-slate-950">Categories</h2>
+                <h2 className="text-lg font-bold text-slate-950">Catégories</h2>
                 <p className="mt-1 text-sm text-slate-500">{getCategoryCountLabel(categoriesQuery.data?.length ?? 0)}</p>
               </div>
               {categoriesQuery.isFetching && <p className="text-xs font-bold uppercase text-slate-400">Chargement</p>}
@@ -182,7 +177,7 @@ export function AdminPage() {
               <input
                 className="h-12 min-w-0 flex-1 rounded-2xl border border-slate-200 bg-white px-4 text-sm font-semibold outline-none transition focus:border-[#1a4231]"
                 onChange={(event) => setNewCategoryName(event.target.value)}
-                placeholder="Nom de la categorie"
+                placeholder="Nom de la catégorie"
                 type="text"
                 value={newCategoryName}
               />
@@ -204,13 +199,13 @@ export function AdminPage() {
             {categoriesQuery.isError && (
               <StateMessage
                 action={<RetryButton onClick={() => void categoriesQuery.refetch()} />}
-                message="Impossible de charger les categories."
+                message="Impossible de charger les catégories."
                 title="Erreur de chargement"
               />
             )}
 
             {categoriesQuery.isSuccess && categoriesQuery.data.length === 0 && (
-              <StateMessage message="Aucune categorie n'est disponible." title="Aucune categorie" />
+              <StateMessage message="Aucune catégorie n'est disponible." title="Aucune catégorie" />
             )}
 
             {categoriesQuery.isSuccess && categoriesQuery.data.length > 0 && (
@@ -248,12 +243,12 @@ export function AdminPage() {
               <StateMessage
                 action={<RetryButton onClick={() => void itemsQuery.refetch()} />}
                 message={getErrorMessage(itemsQuery.error)}
-                title="Acces admin indisponible"
+                title="Accès admin indisponible"
               />
             )}
 
             {itemsQuery.isSuccess && itemsQuery.data.length === 0 && (
-              <StateMessage message="Aucun objet n'a ete publie." title="Aucun objet" />
+              <StateMessage message="Aucun objet n'a été publié." title="Aucun objet" />
             )}
 
             {itemsQuery.isSuccess && itemsQuery.data.length > 0 && (
@@ -277,9 +272,9 @@ export function AdminPage() {
         isOpen={deleteTarget !== null}
         onCancel={() => setDeleteTarget(null)}
         onConfirm={handleConfirmDelete}
-        title="Supprimer definitivement ?"
+        title="Supprimer définitivement ?"
       >
-        Cette action supprimera {deleteTarget?.label}. Elle ne pourra pas etre annulee.
+        Cette action supprimera {deleteTarget?.label}. Elle ne pourra pas être annulée.
         {deleteError !== null && deleteError !== undefined && <ErrorMessage error={deleteError} />}
       </ConfirmDialog>
 
@@ -376,9 +371,9 @@ function ItemAdminRow({ item, onDelete }: { item: Item; onDelete: () => void }) 
           </div>
           <dl className="mt-3 grid gap-2 text-xs text-slate-500 sm:grid-cols-2">
             <ItemMeta label="Ville" value={item.city} />
-            <ItemMeta label="Categorie" value={item.category?.name ?? 'Sans categorie'} />
-            <ItemMeta label="Proprietaire" value={item.owner?.email ?? 'Inconnu'} />
-            <ItemMeta label="Publie" value={formatDate(item.createdAt)} />
+            <ItemMeta label="Catégorie" value={item.category?.name ?? 'Sans catégorie'} />
+            <ItemMeta label="Propriétaire" value={item.owner?.email ?? 'Inconnu'} />
+            <ItemMeta label="Publié" value={formatDate(item.createdAt)} />
           </dl>
         </div>
         <button
@@ -413,7 +408,7 @@ function RetryButton({ onClick }: { onClick: () => void }) {
       onClick={onClick}
       type="button"
     >
-      Reessayer
+      Réessayer
     </button>
   )
 }
@@ -447,7 +442,7 @@ function getErrorMessage(error: unknown): string {
 }
 
 function getCategoryCountLabel(count: number): string {
-  return count > 1 ? `${count} categories` : `${count} categorie`
+  return count > 1 ? `${count} catégories` : `${count} catégorie`
 }
 
 function getItemCountLabel(count: number): string {

@@ -1,5 +1,6 @@
 import { useState } from 'react'
 import { Link, useNavigate, useParams } from 'react-router'
+import { AppHeader } from '../../../components/ui/AppHeader.tsx'
 import { getAuthToken } from '../../../lib/api.ts'
 import { queryClient } from '../../../lib/queryClient.ts'
 import { LoanRequestSheet } from '../../loans/components/LoanRequestSheet.tsx'
@@ -57,41 +58,9 @@ export function ItemDetailPage() {
 
   return (
     <div className="min-h-screen bg-[#fdfcf8] pb-32 text-slate-950 sm:bg-[#f8f8f3] sm:pb-12">
-      <div className="mx-auto w-full max-w-6xl px-4 pt-5 sm:px-5 sm:pt-7 lg:px-6 lg:pt-8">
-        <header className="mb-6 sm:mb-7 sm:flex sm:items-center sm:justify-between sm:gap-6">
-          <div className="grid grid-cols-[auto_1fr_auto] items-center gap-3 sm:block">
-            <Link
-              aria-label="Retour aux objets"
-              className="flex h-11 w-11 items-center justify-center rounded-full bg-white text-[#1a4231] shadow-sm transition hover:bg-[#edf1ea] sm:hidden"
-              to="/"
-            >
-              <ArrowLeftIcon />
-            </Link>
+      <AppHeader mobileBackTo="/" navigation={<DesktopNavigation />} />
 
-            <div>
-              <p className="text-center text-2xl font-bold tracking-tight text-[#1a4231] sm:text-left sm:text-4xl">
-                Seconde Vie
-              </p>
-              <p className="mt-3 hidden max-w-lg text-sm leading-6 text-slate-600 sm:block">
-                Consultez les détails de l'objet avant de demander un emprunt.
-              </p>
-            </div>
-
-            <span className="h-11 w-11 sm:hidden" />
-          </div>
-
-          <div className="hidden items-center gap-3 sm:flex">
-            <DesktopNavigation />
-            <Link
-              className="inline-flex h-11 items-center gap-2 rounded-full bg-white px-4 text-sm font-bold text-[#1a4231] shadow-sm transition hover:bg-[#edf1ea]"
-              to="/"
-            >
-              <ArrowLeftIcon />
-              Retour
-            </Link>
-          </div>
-        </header>
-
+      <div className="mx-auto w-full max-w-6xl px-4 pt-5 sm:px-5 sm:pt-0 lg:px-6">
         <article className="lg:grid lg:grid-cols-[minmax(0,1.05fr)_minmax(22rem,0.95fr)] lg:items-start lg:gap-6">
           <section className="overflow-hidden rounded-2xl bg-slate-100 sm:rounded-[1.5rem] lg:sticky lg:top-6">
             <div className="aspect-[4/5] sm:aspect-[16/10] lg:aspect-[4/5]">
@@ -208,15 +177,6 @@ function DetailState({ message, title }: { message: string; title: string }) {
         </Link>
       </div>
     </div>
-  )
-}
-
-function ArrowLeftIcon() {
-  return (
-    <svg className="h-4 w-4" fill="none" stroke="currentColor" strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" viewBox="0 0 24 24">
-      <path d="m12 19-7-7 7-7" />
-      <path d="M19 12H5" />
-    </svg>
   )
 }
 

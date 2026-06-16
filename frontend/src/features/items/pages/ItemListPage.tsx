@@ -1,5 +1,6 @@
 import { useMemo, useState } from 'react'
 import { Link } from 'react-router'
+import { AppHeader } from '../../../components/ui/AppHeader.tsx'
 import { BottomNavigation } from '../components/BottomNavigation.tsx'
 import { DesktopNavigation } from '../components/DesktopNavigation.tsx'
 import { ItemCard } from '../components/ItemCard.tsx'
@@ -29,19 +30,18 @@ export function ItemListPage() {
 
   return (
     <div className="min-h-screen bg-[#fdfcf8] pb-32 text-slate-950 sm:bg-[#f8f8f3] sm:pb-12">
-      <div className="mx-auto w-full max-w-6xl px-4 pt-5 sm:px-5 sm:pt-7 lg:px-6 lg:pt-8">
-        <header className="mb-6 sm:mb-7 sm:flex sm:items-center sm:justify-between sm:gap-6">
+      <AppHeader navigation={<DesktopNavigation />} />
+
+      <div className="mx-auto w-full max-w-6xl px-4 pt-5 sm:px-5 sm:pt-0 lg:px-6">
+        <section className="mb-6 sm:mb-7 sm:flex sm:items-center sm:justify-between sm:gap-6">
           <div>
-            <h1 className="text-center text-2xl font-bold tracking-tight text-[#1a4231] sm:text-left sm:text-4xl">
-              Seconde Vie
-            </h1>
+            <h1 className="text-2xl font-bold tracking-tight text-[#1a4231] sm:text-4xl">Objets à emprunter</h1>
             <p className="mt-3 hidden max-w-lg text-sm leading-6 text-slate-600 sm:block">
               Retrouvez les objets disponibles autour de vous et donnez une nouvelle vie aux objets du quotidien.
             </p>
           </div>
 
           <div className="hidden shrink-0 items-center gap-3 sm:flex">
-            <DesktopNavigation />
             <Link
               className="rounded-full bg-[#1a4231] px-5 py-3 text-sm font-bold text-white shadow-lg shadow-[#1a4231]/15 transition hover:bg-[#143629]"
               to="/items/new"
@@ -49,7 +49,7 @@ export function ItemListPage() {
               Créer une annonce
             </Link>
           </div>
-        </header>
+        </section>
 
         <section className="rounded-[1.5rem] bg-[#fdfcf8] sm:bg-white sm:p-4 sm:shadow-sm lg:p-5">
           <div className="grid gap-3 sm:grid-cols-[minmax(0,1fr)_minmax(14rem,18rem)] sm:items-center">
