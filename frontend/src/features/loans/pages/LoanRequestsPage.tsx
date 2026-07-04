@@ -247,7 +247,7 @@ function LoanRequestSkeletonList() {
 }
 
 function getCardClassName(status: string): string {
-  const baseClassName = 'flex flex-col gap-4 rounded-[2rem] p-5 shadow-sm'
+  const baseClassName = 'flex flex-col gap-4 rounded-[2rem] p-5 shadow-sm ring-2 ring-transparent transition duration-300 hover:ring-[#d97706]/35'
 
   if (status === 'acceptee') {
     return baseClassName + ' border border-[#1a4231]/5 bg-[#f5f2e8]'
