@@ -61,11 +61,48 @@ php bin/console doctrine:migrations:migrate
 php bin/phpunit
 ```
 
-### Docker, à compléter selon la configuration
+### Docker
 
 ```bash
 docker compose up --build
 ```
+
+
+## CI/CD
+
+La CI GitHub Actions est definie dans `.github/workflows/ci.yml`. Elle se declenche sur chaque pull request et sur chaque push vers `develop`.
+
+### Job Backend
+
+Le job `Backend` verifie la partie Symfony avec PHP 8.3 et MySQL 8.0 :
+
+- validation de `backend/composer.json` avec `composer validate --strict` ;
+- installation des dependances avec `composer install` ;
+- audit de securite avec `composer audit` ;
+- creation de la base de test ;
+- execution des migrations Doctrine ;
+- execution des tests avec `php bin/phpunit`.
+
+### Job Frontend
+
+Le job `Frontend` verifie la partie React avec Node.js 22 :
+
+- installation reproductible avec `npm ci` ;
+- audit de securite avec `npm audit --audit-level=high` ;
+- lint avec `npm run lint` ;
+- tests frontend avec `npm run test` ;
+- build de production avec `npm run build`.
+
+`npm audit --audit-level=high` bloque la CI sur les vulnerabilites high et critical. Les alertes moderate ou low restent a surveiller, mais ne bloquent pas le MVP.
+
+### Protection de branche recommandee
+
+Pour rendre la CI bloquante sur `develop`, configurer GitHub avec :
+
+- pull request obligatoire avant merge ;
+- status checks obligatoires `Backend` et `Frontend` ;
+- branche a jour avant merge ;
+- pas de push direct sur `develop` ou `main` pour les contributeurs.
 
 ## Organisation Git recommandée
 

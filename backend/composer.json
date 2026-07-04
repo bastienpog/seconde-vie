@@ -1,4 +1,6 @@
 {
+    "name": "seconde-vie/backend",
+    "description": "Backend Symfony de l'application Seconde Vie",
     "type": "project",
     "license": "proprietary",
     "minimum-stability": "stable",
