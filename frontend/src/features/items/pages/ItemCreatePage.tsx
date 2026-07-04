@@ -1,17 +1,20 @@
 import type { ReactNode } from 'react'
 import { Link, useNavigate } from 'react-router'
 import { AppHeader } from '../../../components/ui/AppHeader.tsx'
-import { getAuthToken } from '../../../lib/api.ts'
+import { ApiError, getAuthToken } from '../../../lib/api.ts'
 import { queryClient } from '../../../lib/queryClient.ts'
 import { DesktopNavigation } from '../components/DesktopNavigation.tsx'
 import { ItemForm } from '../components/ItemForm.tsx'
+import { useMeQuery } from '../../auth/hooks.ts'
 import { useCreateItemMutation } from '../hooks.ts'
 import type { ItemPayload } from '../services/itemsApi.ts'
 
 export function ItemCreatePage() {
   const navigate = useNavigate()
   const hasToken = getAuthToken() !== null
+  const meQuery = useMeQuery()
   const createItemMutation = useCreateItemMutation()
+  const isUnauthorizedError = meQuery.error instanceof ApiError && meQuery.error.status === 401
 
   function handleSubmit(payload: ItemPayload) {
     if (!hasToken) {
@@ -29,10 +32,30 @@ export function ItemCreatePage() {
     })
   }
 
-  if (!hasToken) {
+  if (!hasToken || (meQuery.isError && isUnauthorizedError)) {
     return (
       <ItemFormPageShell title="Prêter un objet" description="Publiez un objet disponible pour le prêt local.">
         <AuthRequiredState />
+      </ItemFormPageShell>
+    )
+  }
+
+  if (meQuery.isLoading) {
+    return (
+      <ItemFormPageShell title="Prêter un objet" description="Publiez un objet disponible pour le prêt local.">
+        <CreateSkeleton />
+      </ItemFormPageShell>
+    )
+  }
+
+  if (meQuery.isError) {
+    return (
+      <ItemFormPageShell title="Prêter un objet" description="Publiez un objet disponible pour le prêt local.">
+        <StateMessage
+          action={<RetryButton onClick={() => void meQuery.refetch()} />}
+          message="Impossible de vérifier votre session pour le moment."
+          title="Une erreur est survenue"
+        />
       </ItemFormPageShell>
     )
   }
@@ -99,6 +122,33 @@ function AuthRequiredState() {
       message="Connectez-vous pour publier un objet."
       title="Connexion requise"
     />
+  )
+}
+
+function RetryButton({ onClick }: { onClick: () => void }) {
+  return (
+    <button
+      className="rounded-full bg-[#1a4231] px-5 py-3 text-sm font-bold text-white transition hover:bg-[#143629]"
+      onClick={onClick}
+      type="button"
+    >
+      Réessayer
+    </button>
+  )
+}
+
+function CreateSkeleton() {
+  return (
+    <div className="mx-auto flex w-full max-w-2xl animate-pulse flex-col gap-8">
+      <div className="h-48 rounded-[2rem] bg-slate-200" />
+      <div className="space-y-7">
+        <div className="h-14 rounded-2xl bg-slate-200" />
+        <div className="h-14 rounded-2xl bg-slate-200" />
+        <div className="h-14 rounded-2xl bg-slate-200" />
+        <div className="h-14 rounded-2xl bg-slate-200" />
+        <div className="h-40 rounded-2xl bg-slate-200" />
+      </div>
+    </div>
   )
 }
 

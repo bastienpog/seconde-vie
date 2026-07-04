@@ -13,6 +13,7 @@ export function ProfilePage() {
   const meQuery = useMeQuery()
   const deleteMeMutation = useDeleteMeMutation()
   const [isDeleteDialogOpen, setIsDeleteDialogOpen] = useState(false)
+  const isUnauthorizedError = meQuery.error instanceof ApiError && meQuery.error.status === 401
 
   function handleLogout() {
     clearAuthToken()
@@ -47,11 +48,15 @@ export function ProfilePage() {
         {hasToken && meQuery.isLoading && <ProfileSkeleton />}
 
         {hasToken && meQuery.isError && (
-          <StateMessage
-            action={<RetryButton onClick={() => void meQuery.refetch()} />}
-            message="Impossible de charger votre profil pour le moment."
-            title="Une erreur est survenue"
-          />
+          isUnauthorizedError ? (
+            <AuthRequiredState />
+          ) : (
+            <StateMessage
+              action={<RetryButton onClick={() => void meQuery.refetch()} />}
+              message="Impossible de charger votre profil pour le moment."
+              title="Une erreur est survenue"
+            />
+          )
         )}
 
         {hasToken && meQuery.isSuccess && (

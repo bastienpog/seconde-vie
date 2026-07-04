@@ -32,6 +32,7 @@ export function LoanRequestsPage() {
   const refuseMutation = useRefuseLoanRequestMutation()
   const activeQuery = activeTab === 'received' ? receivedQuery : sentQuery
   const activeRequests = activeQuery.data ?? []
+  const isUnauthorizedError = activeQuery.error instanceof ApiError && activeQuery.error.status === 401
   const mutationError = acceptMutation.error ?? refuseMutation.error
 
   function handleAnswer(id: number, action: LoanAction) {
@@ -67,11 +68,15 @@ export function LoanRequestsPage() {
         {hasToken && activeQuery.isLoading && <LoanRequestSkeletonList />}
 
         {hasToken && activeQuery.isError && (
-          <StateMessage
-            action={<RetryButton onClick={() => void activeQuery.refetch()} />}
-            message="Impossible de charger vos demandes pour le moment."
-            title="Une erreur est survenue"
-          />
+          isUnauthorizedError ? (
+            <AuthRequiredState />
+          ) : (
+            <StateMessage
+              action={<RetryButton onClick={() => void activeQuery.refetch()} />}
+              message="Impossible de charger vos demandes pour le moment."
+              title="Une erreur est survenue"
+            />
+          )
         )}
 
         {hasToken && activeQuery.isSuccess && mutationError !== null && mutationError !== undefined && (

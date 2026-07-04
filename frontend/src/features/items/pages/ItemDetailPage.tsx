@@ -1,8 +1,9 @@
 import { useState } from 'react'
 import { Link, useNavigate, useParams } from 'react-router'
 import { AppHeader } from '../../../components/ui/AppHeader.tsx'
-import { getAuthToken } from '../../../lib/api.ts'
+import { ApiError, getAuthToken } from '../../../lib/api.ts'
 import { queryClient } from '../../../lib/queryClient.ts'
+import { useMeQuery } from '../../auth/hooks.ts'
 import { LoanRequestSheet } from '../../loans/components/LoanRequestSheet.tsx'
 import { useCreateLoanRequestMutation } from '../../loans/hooks.ts'
 import type { CreateLoanRequestPayload } from '../../loans/services/loansApi.ts'
@@ -20,10 +21,16 @@ export function ItemDetailPage() {
   const [isLoanSheetOpen, setIsLoanSheetOpen] = useState(false)
   const [loanRequestSuccessMessage, setLoanRequestSuccessMessage] = useState<string | null>(null)
   const hasToken = getAuthToken() !== null
+  const meQuery = useMeQuery()
+  const isUnauthorizedError = meQuery.error instanceof ApiError && meQuery.error.status === 401
+  const canRequestLoan = hasToken && meQuery.isSuccess
 
   function handleOpenLoanRequest() {
-    if (!hasToken) {
-      navigate('/login')
+    if (!canRequestLoan) {
+      if (!hasToken || isUnauthorizedError) {
+        navigate('/login')
+      }
+
       return
     }
 
@@ -104,10 +111,11 @@ export function ItemDetailPage() {
             <div className="mt-5 grid gap-3 sm:grid-cols-2 lg:mt-6 lg:grid-cols-1">
               <button
                 className="rounded-full bg-[#1a4231] px-5 py-4 text-sm font-bold text-white shadow-lg shadow-[#1a4231]/15 transition hover:bg-[#143629] disabled:cursor-not-allowed disabled:opacity-70"
+                disabled={hasToken && !canRequestLoan && !isUnauthorizedError}
                 onClick={handleOpenLoanRequest}
                 type="button"
               >
-                {hasToken ? 'Demander un emprunt' : 'Se connecter pour emprunter'}
+                {getLoanRequestButtonLabel(hasToken, canRequestLoan, meQuery.isLoading, isUnauthorizedError)}
               </button>
               <Link
                 className="inline-flex items-center justify-center rounded-full bg-[#edf1ea] px-5 py-4 text-sm font-bold text-[#1a4231] transition hover:bg-[#e2ebe4]"
@@ -138,6 +146,27 @@ export function ItemDetailPage() {
       <BottomNavigation showCreateButton={false} />
     </div>
   )
+}
+
+function getLoanRequestButtonLabel(
+  hasToken: boolean,
+  canRequestLoan: boolean,
+  isCheckingSession: boolean,
+  isUnauthorizedError: boolean,
+): string {
+  if (!hasToken || isUnauthorizedError) {
+    return 'Se connecter pour emprunter'
+  }
+
+  if (isCheckingSession) {
+    return 'Vérification...'
+  }
+
+  if (!canRequestLoan) {
+    return 'Session indisponible'
+  }
+
+  return 'Demander un emprunt'
 }
 
 function DetailSkeleton() {
