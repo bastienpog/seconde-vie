@@ -9,6 +9,7 @@ import { ItemListPage } from '../features/items/pages/ItemListPage.tsx'
 import { MyItemsPage } from '../features/items/pages/MyItemsPage.tsx'
 import { LoanRequestsPage } from '../features/loans/pages/LoanRequestsPage.tsx'
 import { ProfilePage } from '../features/profile/pages/ProfilePage.tsx'
+import { PrivacyPage } from '../features/profile/pages/PrivacyPage.tsx'
 
 export function AppRouter() {
   return (
@@ -21,6 +22,7 @@ export function AppRouter() {
         <Route element={<MyItemsPage />} path="/me/items" />
         <Route element={<LoanRequestsPage />} path="/loans" />
         <Route element={<ProfilePage />} path="/profile" />
+        <Route element={<PrivacyPage />} path="/privacy" />
         <Route element={<AdminPage />} path="/admin" />
         <Route element={<LoginPage />} path="/login" />
         <Route element={<RegisterPage />} path="/register" />
