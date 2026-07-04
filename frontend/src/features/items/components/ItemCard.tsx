@@ -8,9 +8,9 @@ type ItemCardProps = {
 
 export function ItemCard({ item }: ItemCardProps) {
   return (
-    <Link className="group block" to={`/items/${item.id}`}>
+    <Link className="group block rounded-2xl focus-visible:outline-none focus-visible:ring-4 focus-visible:ring-[#d97706]/35" to={`/items/${item.id}`}>
       <article className="overflow-hidden">
-        <div className="relative aspect-[4/5] overflow-hidden rounded-2xl bg-slate-200">
+        <div className="relative aspect-[4/5] overflow-hidden rounded-2xl bg-slate-200 ring-2 ring-transparent transition duration-300 group-hover:ring-[#d97706]/45 group-focus-visible:ring-[#d97706]">
           <ItemImage
             className="transition duration-300 group-hover:scale-[1.03]"
             item={item}
@@ -21,7 +21,7 @@ export function ItemCard({ item }: ItemCardProps) {
         </div>
 
         <div className="px-1 pt-3">
-          <h2 className="text-sm font-bold leading-5 text-slate-950 sm:text-base">
+          <h2 className="text-sm font-bold leading-5 text-slate-950 transition group-hover:text-[#b45309] sm:text-base">
             {item.title}
           </h2>
           <p className="mt-1 text-xs text-slate-500 sm:text-sm">{item.city}</p>

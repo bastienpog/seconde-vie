@@ -32,6 +32,7 @@ export function LoanRequestsPage() {
   const refuseMutation = useRefuseLoanRequestMutation()
   const activeQuery = activeTab === 'received' ? receivedQuery : sentQuery
   const activeRequests = activeQuery.data ?? []
+  const isUnauthorizedError = activeQuery.error instanceof ApiError && activeQuery.error.status === 401
   const mutationError = acceptMutation.error ?? refuseMutation.error
 
   function handleAnswer(id: number, action: LoanAction) {
@@ -67,11 +68,15 @@ export function LoanRequestsPage() {
         {hasToken && activeQuery.isLoading && <LoanRequestSkeletonList />}
 
         {hasToken && activeQuery.isError && (
-          <StateMessage
-            action={<RetryButton onClick={() => void activeQuery.refetch()} />}
-            message="Impossible de charger vos demandes pour le moment."
-            title="Une erreur est survenue"
-          />
+          isUnauthorizedError ? (
+            <AuthRequiredState />
+          ) : (
+            <StateMessage
+              action={<RetryButton onClick={() => void activeQuery.refetch()} />}
+              message="Impossible de charger vos demandes pour le moment."
+              title="Une erreur est survenue"
+            />
+          )
         )}
 
         {hasToken && activeQuery.isSuccess && mutationError !== null && mutationError !== undefined && (
@@ -242,7 +247,7 @@ function LoanRequestSkeletonList() {
 }
 
 function getCardClassName(status: string): string {
-  const baseClassName = 'flex flex-col gap-4 rounded-[2rem] p-5 shadow-sm'
+  const baseClassName = 'flex flex-col gap-4 rounded-[2rem] p-5 shadow-sm ring-2 ring-transparent transition duration-300 hover:ring-[#d97706]/35'
 
   if (status === 'acceptee') {
     return baseClassName + ' border border-[#1a4231]/5 bg-[#f5f2e8]'

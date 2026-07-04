@@ -1,4 +1,5 @@
 import type { ReactNode } from 'react'
+import { Link } from 'react-router'
 
 type AuthLayoutProps = {
   children: ReactNode
@@ -16,6 +17,15 @@ export function AuthLayout({ children }: AuthLayoutProps) {
         </header>
 
         {children}
+
+        <footer className="mt-8 text-center">
+          <Link
+            className="text-xs font-semibold text-[#5f6b65] underline-offset-4 transition hover:text-[#d97706] hover:underline focus-visible:outline-none focus-visible:ring-4 focus-visible:ring-[#d97706]/25"
+            to="/privacy"
+          >
+            Politique de confidentialité
+          </Link>
+        </footer>
       </div>
     </section>
   )
