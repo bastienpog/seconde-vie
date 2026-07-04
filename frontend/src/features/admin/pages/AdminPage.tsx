@@ -177,6 +177,7 @@ export function AdminPage() {
               <input
                 className="h-12 min-w-0 flex-1 rounded-2xl border border-slate-200 bg-white px-4 text-sm font-semibold outline-none transition focus:border-[#1a4231]"
                 onChange={(event) => setNewCategoryName(event.target.value)}
+                aria-label="Nom de la nouvelle catégorie"
                 placeholder="Nom de la catégorie"
                 type="text"
                 value={newCategoryName}
@@ -306,6 +307,7 @@ function CategoryRow({
     return (
       <form className="flex flex-col gap-3 py-4 sm:flex-row" onSubmit={onSubmitEdit}>
         <input
+          aria-label="Nouveau nom de la catégorie"
           className="h-11 min-w-0 flex-1 rounded-2xl border border-slate-200 px-4 text-sm font-semibold outline-none transition focus:border-[#1a4231]"
           onChange={(event) => onEdit({ ...category, name: event.target.value })}
           type="text"
@@ -314,7 +316,7 @@ function CategoryRow({
         <div className="grid grid-cols-2 gap-2 sm:flex">
           <button
             className="h-11 rounded-full bg-[#1a4231] px-4 text-sm font-bold text-white disabled:cursor-not-allowed disabled:opacity-70"
-            disabled={isSaving || editedCategory.name.trim() === ''}
+            disabled={isSaving || editedCategory.name.trim() === ""}
             type="submit"
           >
             Valider
@@ -341,6 +343,7 @@ function CategoryRow({
       <div className="grid grid-cols-2 gap-2 sm:flex">
         <button
           className="h-10 rounded-full bg-[#edf1ea] px-4 text-xs font-bold text-[#1a4231] transition hover:bg-[#e2ebe4]"
+          aria-label={"Modifier la catégorie " + category.name}
           onClick={() => onEdit(category)}
           type="button"
         >
@@ -349,6 +352,7 @@ function CategoryRow({
         <button
           className="h-10 rounded-full bg-red-50 px-4 text-xs font-bold text-red-700 transition hover:bg-red-100"
           onClick={onDelete}
+          aria-label={"Supprimer la catégorie " + category.name}
           type="button"
         >
           Supprimer
@@ -360,7 +364,7 @@ function CategoryRow({
 
 function ItemAdminRow({ item, onDelete }: { item: Item; onDelete: () => void }) {
   return (
-    <article className="rounded-2xl border border-slate-100 bg-[#fbfbf7] p-4">
+    <article className="rounded-2xl border border-slate-100 bg-[#fbfbf7] p-4 ring-2 ring-transparent transition duration-300 hover:ring-[#d97706]/30">
       <div className="flex flex-col gap-4 sm:flex-row sm:items-start sm:justify-between">
         <div className="min-w-0">
           <div className="flex flex-wrap items-center gap-2">
@@ -379,6 +383,7 @@ function ItemAdminRow({ item, onDelete }: { item: Item; onDelete: () => void }) 
         <button
           className="h-10 shrink-0 rounded-full bg-red-50 px-4 text-xs font-bold text-red-700 transition hover:bg-red-100"
           onClick={onDelete}
+          aria-label={"Supprimer l objet " + item.title}
           type="button"
         >
           Supprimer
@@ -398,7 +403,7 @@ function ItemMeta({ label, value }: { label: string; value: string }) {
 }
 
 function ErrorMessage({ error }: { error: unknown }) {
-  return <p className="mt-4 rounded-2xl bg-red-50 px-4 py-3 text-sm font-semibold text-red-700">{getErrorMessage(error)}</p>
+  return <p className="mt-4 rounded-2xl bg-red-50 px-4 py-3 text-sm font-semibold text-red-700" role="alert">{getErrorMessage(error)}</p>
 }
 
 function RetryButton({ onClick }: { onClick: () => void }) {

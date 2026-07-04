@@ -1,4 +1,4 @@
-import { useState, type ReactNode } from 'react'
+import { useEffect, useId, useState, type ReactNode } from 'react'
 import { Link, useNavigate } from 'react-router'
 import { AppHeader } from '../../../components/ui/AppHeader.tsx'
 import { ApiError, clearAuthToken, getAuthToken } from '../../../lib/api.ts'
@@ -84,6 +84,12 @@ export function ProfilePage() {
                 <p className="mt-2 text-sm leading-6 text-slate-500">
                   Vous pouvez vous déconnecter de cet appareil à tout moment.
                 </p>
+                <Link
+                  className="mt-4 inline-flex text-sm font-bold text-[#1a4231] underline-offset-4 transition hover:text-[#d97706] hover:underline focus-visible:outline-none focus-visible:ring-4 focus-visible:ring-[#d97706]/25"
+                  to="/privacy"
+                >
+                  Voir la politique de confidentialité
+                </Link>
                 <button
                   className="mt-5 h-12 w-full rounded-full bg-[#edf1ea] px-4 text-sm font-bold text-[#1a4231] transition hover:bg-[#e2ebe4]"
                   onClick={handleLogout}
@@ -172,20 +178,39 @@ function DeleteAccountDialog({
   onCancel: () => void
   onConfirm: () => void
 }) {
+  const titleId = useId()
+  const descriptionId = useId()
+
+  useEffect(() => {
+    if (!isOpen) {
+      return
+    }
+
+    function handleKeyDown(event: KeyboardEvent) {
+      if (event.key === 'Escape' && !isLoading) {
+        onCancel()
+      }
+    }
+
+    window.addEventListener('keydown', handleKeyDown)
+
+    return () => window.removeEventListener('keydown', handleKeyDown)
+  }, [isLoading, isOpen, onCancel])
+
   if (!isOpen) {
     return null
   }
 
   return (
     <div className="fixed inset-0 z-50 flex items-end justify-center bg-slate-950/50 px-4 py-6 sm:items-center">
-      <section aria-modal="true" className="w-full max-w-md rounded-[1.5rem] bg-white p-6 shadow-2xl" role="dialog">
-        <h2 className="text-lg font-bold text-slate-950">Supprimer le compte ?</h2>
-        <p className="mt-3 text-sm leading-6 text-slate-600">
+      <section aria-describedby={descriptionId} aria-labelledby={titleId} aria-modal="true" className="w-full max-w-md rounded-[1.5rem] bg-white p-6 shadow-2xl" role="dialog">
+        <h2 className="text-lg font-bold text-slate-950" id={titleId}>Supprimer le compte ?</h2>
+        <p className="mt-3 text-sm leading-6 text-slate-600" id={descriptionId}>
           Cette suppression est définitive. Vos objets publiés et vos demandes d'emprunt associées seront supprimés.
         </p>
 
         {error !== null && error !== undefined && (
-          <p className="mt-4 rounded-2xl bg-red-50 px-4 py-3 text-sm font-semibold text-red-700">
+          <p className="mt-4 rounded-2xl bg-red-50 px-4 py-3 text-sm font-semibold text-red-700" role="alert">
             {getErrorMessage(error)}
           </p>
         )}
