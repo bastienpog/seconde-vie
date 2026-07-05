@@ -1,0 +1,95 @@
+name: CD
+
+on:
+  push:
+    branches:
+      - main
+  workflow_dispatch:
+
+permissions:
+  contents: read
+  packages: write
+
+env:
+  REGISTRY: ghcr.io
+  IMAGE_PREFIX: ghcr.io/${{ github.repository_owner }}/${{ github.event.repository.name }}
+
+jobs:
+  publish:
+    name: Build and publish Docker images
+    runs-on: ubuntu-latest
+
+    outputs:
+      backend_image: ${{ steps.images.outputs.backend_image }}
+      frontend_image: ${{ steps.images.outputs.frontend_image }}
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Login to GHCR
+        uses: docker/login-action@v3
+        with:
+          registry: ${{ env.REGISTRY }}
+          username: ${{ github.actor }}
+          password: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Build and push backend image
+        uses: docker/build-push-action@v6
+        with:
+          context: backend
+          file: backend/Dockerfile.prod
+          push: true
+          tags: |
+            ${{ env.IMAGE_PREFIX }}-backend:latest
+            ${{ env.IMAGE_PREFIX }}-backend:${{ github.sha }}
+
+      - name: Build and push frontend image
+        uses: docker/build-push-action@v6
+        with:
+          context: frontend
+          file: frontend/Dockerfile.prod
+          push: true
+          build-args: |
+            VITE_API_URL=/api
+          tags: |
+            ${{ env.IMAGE_PREFIX }}-frontend:latest
+            ${{ env.IMAGE_PREFIX }}-frontend:${{ github.sha }}
+
+      - name: Export image names
+        id: images
+        run: |
+          echo "backend_image=${IMAGE_PREFIX}-backend:${GITHUB_SHA}" >> "$GITHUB_OUTPUT"
+          echo "frontend_image=${IMAGE_PREFIX}-frontend:${GITHUB_SHA}" >> "$GITHUB_OUTPUT"
+
+  deploy:
+    name: Deploy to VPS
+    runs-on: ubuntu-latest
+    needs: publish
+    environment: production
+
+    steps:
+      - name: Deploy over SSH
+        uses: appleboy/ssh-action@v1.2.0
+        env:
+          BACKEND_IMAGE: ${{ needs.publish.outputs.backend_image }}
+          FRONTEND_IMAGE: ${{ needs.publish.outputs.frontend_image }}
+          GHCR_TOKEN: ${{ secrets.GHCR_TOKEN }}
+          GHCR_USERNAME: ${{ secrets.GHCR_USERNAME }}
+          VPS_APP_DIR: ${{ secrets.VPS_APP_DIR }}
+          PROD_DOMAIN: ${{ secrets.PROD_DOMAIN }}
+        with:
+          host: ${{ secrets.VPS_HOST }}
+          username: ${{ secrets.VPS_USER }}
+          key: ${{ secrets.VPS_SSH_KEY }}
+          envs: BACKEND_IMAGE,FRONTEND_IMAGE,GHCR_TOKEN,GHCR_USERNAME,VPS_APP_DIR,PROD_DOMAIN
+          script: |
+            set -eu
+            cd "$VPS_APP_DIR"
+            echo "$GHCR_TOKEN" | docker login ghcr.io -u "$GHCR_USERNAME" --password-stdin
+            sed -i "s|^BACKEND_IMAGE=.*|BACKEND_IMAGE=$BACKEND_IMAGE|" .env
+            sed -i "s|^FRONTEND_IMAGE=.*|FRONTEND_IMAGE=$FRONTEND_IMAGE|" .env
+            docker compose -f docker-compose.prod.yml --env-file .env pull
+            docker compose -f docker-compose.prod.yml --env-file .env up -d
+            docker compose -f docker-compose.prod.yml --env-file .env ps
+            curl -fsS "https://$PROD_DOMAIN/api/items" >/dev/null
