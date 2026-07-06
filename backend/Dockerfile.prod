@@ -35,6 +35,8 @@ COPY . .
 COPY docker/nginx-prod.conf /etc/nginx/http.d/default.conf
 COPY docker-entrypoint-prod.sh /usr/local/bin/seconde-vie-prod-entrypoint
 
+RUN printf '%s\n' 'APP_ENV=prod' 'APP_DEBUG=0' > .env
+
 RUN composer install --no-dev --no-interaction --prefer-dist --optimize-autoloader --no-scripts \
     && mkdir -p config/jwt var/cache var/log \
     && chown -R www-data:www-data var config/jwt \
