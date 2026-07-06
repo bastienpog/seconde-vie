@@ -3,6 +3,10 @@ FROM php:8.3-fpm-alpine
 WORKDIR /var/www/html
 
 ENV APP_ENV=prod
+ENV APP_DEBUG=0
+
+RUN printf '%s\n' 'variables_order = "EGPCS"' > /usr/local/etc/php/conf.d/99-symfony-env.ini \
+    && printf '%s\n' '[www]' 'clear_env = no' > /usr/local/etc/php-fpm.d/zz-env.conf
 
 RUN apk add --no-cache \
     bash \
