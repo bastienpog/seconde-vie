@@ -10,6 +10,7 @@ RUN apk add --no-cache \
     git \
     icu-dev \
     libzip-dev \
+    libxml2-dev \
     mysql-client \
     nginx \
     oniguruma-dev \
@@ -21,6 +22,7 @@ RUN docker-php-ext-install \
     opcache \
     pdo \
     pdo_mysql \
+    xml \
     zip
 
 COPY --from=composer:2 /usr/bin/composer /usr/bin/composer
@@ -29,7 +31,7 @@ COPY . .
 COPY docker/nginx-prod.conf /etc/nginx/http.d/default.conf
 COPY docker-entrypoint-prod.sh /usr/local/bin/seconde-vie-prod-entrypoint
 
-RUN composer install --no-dev --no-interaction --prefer-dist --optimize-autoloader \
+RUN composer install --no-dev --no-interaction --prefer-dist --optimize-autoloader --no-scripts \
     && mkdir -p config/jwt var/cache var/log \
     && chown -R www-data:www-data var config/jwt \
     && chmod +x /usr/local/bin/seconde-vie-prod-entrypoint
