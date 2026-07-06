@@ -92,4 +92,4 @@ jobs:
             docker compose -f docker-compose.prod.yml --env-file .env pull
             docker compose -f docker-compose.prod.yml --env-file .env up -d
             docker compose -f docker-compose.prod.yml --env-file .env ps
-            curl -fsS "https://$PROD_DOMAIN/api/items" >/dev/null
+            curl --fail --silent --show-error --retry 12 --retry-delay 10 --retry-all-errors "https://$PROD_DOMAIN/api/items" >/dev/null
